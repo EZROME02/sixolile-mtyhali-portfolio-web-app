@@ -6,6 +6,9 @@ export type WorkspaceRecord = {
   updatedAt: string;
 };
 
-export function canAccessWorkspace(workspace: Pick<WorkspaceRecord, "ownerId">, userId: string): boolean {
+export function canAccessWorkspace(
+  workspace: Pick<WorkspaceRecord, "ownerId">,
+  userId: string,
+): boolean {
   return workspace.ownerId === userId;
 }
