@@ -17,14 +17,21 @@ describe("AI provider boundary", () => {
 
   test("normalizes a provider response without exposing the key", async () => {
     let authorization = "";
-    const result = await runAiProvider(request, {
-      EZROME_AI_BASE_URL: "https://provider.example",
-      EZROME_AI_API_KEY: "secret-test-key",
-      EZROME_AI_MODEL: "test-model",
-    }, async (_input, init) => {
-      authorization = new Headers(init?.headers).get("authorization") ?? "";
-      return new Response(JSON.stringify({ choices: [{ message: { content: "Generated answer" } }] }), { status: 200, headers: { "content-type": "application/json" } });
-    });
+    const result = await runAiProvider(
+      request,
+      {
+        EZROME_AI_BASE_URL: "https://provider.example",
+        EZROME_AI_API_KEY: "secret-test-key",
+        EZROME_AI_MODEL: "test-model",
+      },
+      async (_input, init) => {
+        authorization = new Headers(init?.headers).get("authorization") ?? "";
+        return new Response(
+          JSON.stringify({ choices: [{ message: { content: "Generated answer" } }] }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      },
+    );
     expect(result.answer).toBe("Generated answer");
     expect(result.status).toBe("generated");
     expect(JSON.stringify(result)).not.toContain("secret-test-key");
