@@ -25,6 +25,7 @@ export async function runAiProvider(
       status: "provider_unavailable",
       provenance: { kind: "ai-generated", sources: [], verified: false },
       generatedAt,
+      authenticated: false,
     };
   }
 
@@ -62,5 +63,6 @@ export async function runAiProvider(
     status: "generated",
     provenance: { kind: "ai-generated", sources: [], verified: false },
     generatedAt,
+    authenticated: false,
   };
 }
