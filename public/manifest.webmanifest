@@ -1,0 +1,13 @@
+{
+  "name": "EZROME Technology Intelligence",
+  "short_name": "EZROME",
+  "description": "EZROME technology, AI workplace and football intelligence portfolio.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#071a33",
+  "theme_color": "#071a33",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" }
+  ]
+}
