@@ -1,0 +1,144 @@
+name: EZROME Android Production Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  production-release:
+    name: Build, verify, and publish production-signed APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate production signing secrets are present
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          SMTYHALI_SIGNER_SHA256: ${{ secrets.SMTYHALI_SIGNER_SHA256 }}
+        run: |
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD SMTYHALI_SIGNER_SHA256; do
+            if [ -z "${!name}" ]; then
+              echo "Missing required production signing secret: ${name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK 35
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Install Gradle
+        working-directory: .
+        run: |
+          set -euo pipefail
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.10.2-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          echo "/tmp/gradle-8.10.2/bin" >> "$GITHUB_PATH"
+
+      - name: Materialize production keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          keystore_path="$RUNNER_TEMP/ezrome-production.keystore"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          test -s "$keystore_path"
+          chmod 600 "$keystore_path"
+          echo "ANDROID_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
+
+      - name: Build production-signed release APK
+        env:
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          gradle --no-daemon --stacktrace assembleRelease
+
+      - name: Verify signed APK and signer identity
+        env:
+          SMTYHALI_SIGNER_SHA256: ${{ secrets.SMTYHALI_SIGNER_SHA256 }}
+        run: |
+          set -euo pipefail
+          apk="app/build/outputs/apk/release/app-release.apk"
+          test -s "$apk"
+
+          apksigner verify --verbose "$apk"
+          actual_fingerprint="$(apksigner verify --print-certs "$apk" | awk -F': ' '/Signer #1 certificate SHA-256 digest:/ {print $2; exit}')"
+          if [ -z "$actual_fingerprint" ]; then
+            echo "Could not extract the release certificate SHA-256 fingerprint." >&2
+            exit 1
+          fi
+
+          normalize() { printf '%s' "$1" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]'; }
+          actual_normalized="$(normalize "$actual_fingerprint")"
+          expected_normalized="$(normalize "$SMTYHALI_SIGNER_SHA256")"
+          if [ "$actual_normalized" != "$expected_normalized" ]; then
+            echo "Production signer identity verification failed." >&2
+            exit 1
+          fi
+
+          echo "Production APK signature and signer identity verified."
+
+      - name: Calculate final APK SHA-256
+        id: hash
+        run: |
+          set -euo pipefail
+          apk="app/build/outputs/apk/release/app-release.apk"
+          sha256sum "$apk" | tee "$RUNNER_TEMP/apk-sha256.txt"
+          digest="$(cut -d' ' -f1 "$RUNNER_TEMP/apk-sha256.txt")"
+          test "${#digest}" -eq 64
+          echo "apk_sha256=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Upload exact production APK
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ezrome-android-production-${{ github.run_number }}
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Retrieve uploaded APK
+        uses: actions/download-artifact@v5
+        with:
+          name: ezrome-android-production-${{ github.run_number }}
+          path: ${{ runner.temp }}/retrieved-production
+
+      - name: Verify retrieved APK byte-for-byte
+        env:
+          EXPECTED_APK_SHA256: ${{ steps.hash.outputs.apk_sha256 }}
+        run: |
+          set -euo pipefail
+          original="app/build/outputs/apk/release/app-release.apk"
+          retrieved="$RUNNER_TEMP/retrieved-production/app-release.apk"
+          test -s "$retrieved"
+          cmp -- "$original" "$retrieved"
+
+          retrieved_sha256="$(sha256sum "$retrieved" | cut -d' ' -f1)"
+          if [ "$retrieved_sha256" != "$EXPECTED_APK_SHA256" ]; then
+            echo "Retrieved APK SHA-256 does not match the build output." >&2
+            exit 1
+          fi
+
+          echo "Uploaded artifact matches the final production APK byte-for-byte."
