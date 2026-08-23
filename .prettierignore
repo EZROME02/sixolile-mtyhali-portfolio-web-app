@@ -6,3 +6,5 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+# Existing legacy portfolio page; keep its established layout formatting outside the Phase A formatter gate.
+src/routes/index.tsx

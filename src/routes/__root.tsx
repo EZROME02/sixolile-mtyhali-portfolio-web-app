@@ -77,20 +77,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Sixolile Ezrome Mtyhali | Professional Portfolio" },
+      { title: "EZROME | AI, Web, Work & Knowledge" },
       {
         name: "description",
         content:
-          "Professional portfolio of Sixolile Ezrome Mtyhali — operations, logistics, customer service and applied AI.",
+          "EZROME — an AI, web, productivity and knowledge platform by Sixolile Ezrome Mtyhali.",
       },
       { name: "author", content: "Sixolile Ezrome Mtyhali" },
-      { name: "theme-color", content: "#14243d" },
+      { name: "application-name", content: "EZROME AI" },
+      { name: "theme-color", content: "#071a33" },
+      { property: "og:site_name", content: "EZROME" },
+      { property: "og:url", content: "https://ezrome.co.za" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "canonical", href: "https://ezrome.co.za" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -100,7 +101,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
-
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -123,10 +123,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
   );

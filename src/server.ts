@@ -1,5 +1,8 @@
 import "./lib/error-capture";
 
+import { handleAiRequest } from "./lib/ai/api";
+import { handleAuthRequest } from "./lib/auth/api";
+import { handleWorkspaceRequest } from "./lib/workspace/api";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
@@ -18,8 +21,6 @@ async function getServerEntry(): Promise<ServerEntry> {
   return serverEntryPromise;
 }
 
-// h3 swallows in-handler throws into a normal 500 Response with body
-// {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
@@ -47,6 +48,23 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const pathname = new URL(request.url).pathname;
+      const requestEnv = (env ?? {}) as Record<string, unknown>;
+      if (pathname === "/api/ai") {
+        return await handleAiRequest(request, requestEnv as Parameters<typeof handleAiRequest>[1]);
+      }
+      if (pathname.startsWith("/api/auth/")) {
+        return await handleAuthRequest(
+          request,
+          requestEnv as Parameters<typeof handleAuthRequest>[1],
+        );
+      }
+      if (pathname === "/api/workspace") {
+        return await handleWorkspaceRequest(
+          request,
+          requestEnv as Parameters<typeof handleWorkspaceRequest>[1],
+        );
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
