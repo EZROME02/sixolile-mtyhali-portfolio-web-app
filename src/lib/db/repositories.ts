@@ -9,6 +9,10 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+function toUser(row: UserRow): AuthUser & { passwordHash: string } {
+  return { id: row.id, email: row.email, passwordHash: row.password_hash };
+}
+
 export function createRepositories(db: D1Database) {
   return {
     users: {
@@ -20,12 +24,19 @@ export function createRepositories(db: D1Database) {
           .run();
         return { id, email: normalized };
       },
+      async findById(id: string): Promise<(AuthUser & { passwordHash: string }) | null> {
+        const row = await db
+          .prepare("SELECT id, email, password_hash FROM users WHERE id = ? LIMIT 1")
+          .bind(id)
+          .first<UserRow>();
+        return row ? toUser(row) : null;
+      },
       async findByEmail(email: string): Promise<(AuthUser & { passwordHash: string }) | null> {
         const row = await db
           .prepare("SELECT id, email, password_hash FROM users WHERE email = ? LIMIT 1")
           .bind(normalizeEmail(email))
           .first<UserRow>();
-        return row ? { id: row.id, email: row.email, passwordHash: row.password_hash } : null;
+        return row ? toUser(row) : null;
       },
     },
     sessions: {
@@ -56,10 +67,22 @@ export function createRepositories(db: D1Database) {
           .bind(id, ownerId)
           .first<WorkspaceRow>();
         return row
-          ? { id: row.id, ownerId: row.owner_id, name: row.name, data: row.data, updatedAt: row.updated_at }
+          ? {
+              id: row.id,
+              ownerId: row.owner_id,
+              name: row.name,
+              data: row.data,
+              updatedAt: row.updated_at,
+            }
           : null;
       },
-      async upsert(id: string, ownerId: string, name: string, data: string, updatedAt: string): Promise<void> {
+      async upsert(
+        id: string,
+        ownerId: string,
+        name: string,
+        data: string,
+        updatedAt: string,
+      ): Promise<void> {
         await db
           .prepare(
             "INSERT INTO workspaces (id, owner_id, name, data, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name = excluded.name, data = excluded.data, updated_at = excluded.updated_at WHERE workspaces.owner_id = excluded.owner_id",
