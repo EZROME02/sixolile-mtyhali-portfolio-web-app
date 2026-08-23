@@ -1,0 +1,22 @@
+name: Release Gate Staleness Guard
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  invalidate:
+    name: Invalidate prior release verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a fresh release gate
+        shell: bash
+        run: |
+          echo "PR #${{ github.event.pull_request.number }} advanced to SHA ${{ github.event.pull_request.head.sha }}."
+          echo "Any Release Gate result from an earlier SHA is stale and cannot authorize release."
+          echo "Run Release Gate for this exact SHA and obtain fresh human approval before release."
+          exit 1
