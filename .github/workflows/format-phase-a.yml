@@ -35,3 +35,5 @@ jobs:
           git add .
           git commit -m "chore: format Phase A source"
           git push
+
+# Temporary release-gate repair helper; remove after formatting is committed.
