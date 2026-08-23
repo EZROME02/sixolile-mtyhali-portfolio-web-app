@@ -101,15 +101,17 @@ jobs:
           echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_ENV"
           echo "CURRENT_SHA=$CURRENT_SHA" >> "$GITHUB_ENV"
 
+      - name: Checkout exact verified SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_sha }}
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Re-run final quality gate against exact SHA
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
         run: |
-          git clone --no-checkout "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" release-check
-          cd release-check
-          git checkout "$CURRENT_SHA"
-          bun --version
           bun install --frozen-lockfile
           bun test
           bun run lint
