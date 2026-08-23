@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useSwipeSectionNavigation } from "../hooks/useSwipeSectionNavigation";
+import { DownloadCVButton } from "../components/DownloadCVButton";
 
 function NotFoundComponent() {
   return (
@@ -125,6 +127,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
   useSwipeSectionNavigation();
 
   useEffect(() => {
@@ -143,6 +146,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      {location.pathname === "/" ? (
+        <div className="fixed bottom-4 right-4 z-[60]">
+          <DownloadCVButton />
+        </div>
+      ) : null}
     </QueryClientProvider>
   );
 }
