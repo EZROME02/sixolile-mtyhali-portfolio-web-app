@@ -1,0 +1,52 @@
+name: CI Debug Agent
+
+on:
+  workflow_run:
+    workflows: [Release Gate]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: GitHub Actions run ID to diagnose
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+
+jobs:
+  diagnose:
+    name: Diagnose CI failure
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up GitHub CLI
+        run: gh --version
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Resolve run ID
+        id: run
+        shell: bash
+        run: |
+          if [[ -n "${{ inputs.run_id }}" ]]; then
+            echo "id=${{ inputs.run_id }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Inspect failed logs without modifying the repository
+        shell: bash
+        run: |
+          echo "CI Debug Agent is diagnostic-only. It does not edit files, refs, branches, or pull requests."
+          echo "Inspecting failed steps for workflow run ${{ steps.run.outputs.id }}"
+          gh run view "${{ steps.run.outputs.id }}" --log-failed || true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Report debugging boundary
+        run: |
+          echo "No source-code changes were made by this workflow."
+          echo "No production secrets are available to this workflow."
