@@ -61,7 +61,7 @@ export async function handleAuthRequest(request: Request, env: AuthEnv): Promise
 
   if (pathname === "/api/auth/me" && request.method === "GET") {
     const user = await resolveSession(request, repositories.sessions, repositories.users);
-    return user ? json({ user }) : json({ user: null }, 200);
+    return user ? json({ user }, 200) : json({ user: null }, 200);
   }
 
   return json({ error: "Not found" }, 404);
