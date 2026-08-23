@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - feat/ezrome-android-app
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -36,7 +39,6 @@ jobs:
         run: gradle --no-daemon assembleRelease
 
       - name: Verify APK files and calculate SHA-256
-        id: verify
         shell: bash
         run: |
           set -euo pipefail
@@ -48,14 +50,6 @@ jobs:
           RELEASE_SHA=$(sha256sum "$RELEASE_APK" | awk '{print $1}')
           DEBUG_SIZE=$(stat -c%s "$DEBUG_APK")
           RELEASE_SIZE=$(stat -c%s "$RELEASE_APK")
-          {
-            echo "commit=${GITHUB_SHA}"
-            echo "ref=${GITHUB_REF}"
-            echo "debug_size=${DEBUG_SIZE}"
-            echo "debug_sha=${DEBUG_SHA}"
-            echo "release_size=${RELEASE_SIZE}"
-            echo "release_sha=${RELEASE_SHA}"
-          } >> "$GITHUB_OUTPUT"
           {
             echo "## EZROME Android verification"
             echo "- Result: **PASS**"
