@@ -37,10 +37,7 @@ export async function handleWorkspaceRequest(request: Request, env: AuthEnv): Pr
       workspace.data,
       new Date().toISOString(),
     );
-    return json(
-      { workspace: await repositories.workspaces.findOwned(workspace.id, user.id) },
-      200,
-    );
+    return json({ workspace: await repositories.workspaces.findOwned(workspace.id, user.id) }, 200);
   }
 
   return json({ error: "Method not allowed" }, 405);
