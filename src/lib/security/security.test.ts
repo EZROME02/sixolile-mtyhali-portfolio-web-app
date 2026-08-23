@@ -21,12 +21,21 @@ describe("security primitives", () => {
   });
 
   test("rejects malformed JSON", async () => {
-    const result = await parseJsonBody(new Request("https://ezrome.co.za/api/ai", { method: "POST", body: "{" }), z.object({ query: z.string() }));
+    const result = await parseJsonBody(
+      new Request("https://ezrome.co.za/api/ai", { method: "POST", body: "{" }),
+      z.object({ query: z.string() }),
+    );
     expect(result.response?.status).toBe(400);
   });
 
   test("rejects invalid schema", async () => {
-    const result = await parseJsonBody(new Request("https://ezrome.co.za/api/ai", { method: "POST", body: JSON.stringify({ query: 42 }) }), z.object({ query: z.string() }));
+    const result = await parseJsonBody(
+      new Request("https://ezrome.co.za/api/ai", {
+        method: "POST",
+        body: JSON.stringify({ query: 42 }),
+      }),
+      z.object({ query: z.string() }),
+    );
     expect(result.response?.status).toBe(400);
   });
 });
