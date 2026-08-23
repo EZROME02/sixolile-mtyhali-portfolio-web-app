@@ -12,7 +12,8 @@ function Privacy() {
         <p className="eyebrow">EZROME · ezrome.co.za</p>
         <h1 className="mt-3 text-4xl font-bold">Privacy Policy</h1>
         <p className="mt-4 text-sm text-muted-foreground">
-          This page is a product foundation and must be reviewed and completed for the final EZROME data flows before production release.
+          This page is a product foundation and must be reviewed and completed for the final EZROME
+          data flows before production release.
         </p>
         <div className="mt-8 space-y-7 text-sm leading-6 text-muted-foreground">
           <section>
