@@ -28,7 +28,9 @@ export async function handleAuthRequest(request: Request, env: AuthEnv): Promise
     const parsed = await parseJsonBody(request, credentialsSchema);
     if (parsed.response) return applySecurityHeaders(parsed.response);
     const email = parsed.data!.email.toLowerCase();
-    if (await repositories.users.findByEmail(email)) return json({ error: "Account already exists" }, 409);
+    if (await repositories.users.findByEmail(email)) {
+      return json({ error: "Account already exists" }, 409);
+    }
     const user: AuthUser = await repositories.users.create(
       crypto.randomUUID(),
       email,
@@ -44,7 +46,11 @@ export async function handleAuthRequest(request: Request, env: AuthEnv): Promise
     if (!account || !(await verifyPassword(parsed.data!.password, account.passwordHash))) {
       return json({ error: "Invalid email or password" }, 401);
     }
-    return createSessionResponse({ id: account.id, email: account.email }, repositories.sessions, env);
+    return createSessionResponse(
+      { id: account.id, email: account.email },
+      repositories.sessions,
+      env,
+    );
   }
 
   if (pathname === "/api/auth/logout" && request.method === "POST") {
