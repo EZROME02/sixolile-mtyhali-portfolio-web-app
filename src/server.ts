@@ -51,10 +51,7 @@ export default {
       const pathname = new URL(request.url).pathname;
       const requestEnv = (env ?? {}) as Record<string, unknown>;
       if (pathname === "/api/ai") {
-        return await handleAiRequest(
-          request,
-          requestEnv as Parameters<typeof handleAiRequest>[1],
-        );
+        return await handleAiRequest(request, requestEnv as Parameters<typeof handleAiRequest>[1]);
       }
       if (pathname.startsWith("/api/auth/")) {
         return await handleAuthRequest(
