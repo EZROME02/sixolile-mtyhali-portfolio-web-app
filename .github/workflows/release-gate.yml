@@ -1,0 +1,82 @@
+name: Release Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Exact commit SHA to verify
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: release-gate-${{ github.event.pull_request.number || github.ref }}-${{ github.event.pull_request.head.sha || inputs.sha || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify exact head SHA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve target SHA
+        id: target
+        shell: bash
+        run: |
+          if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
+            echo "sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ inputs.sha }}" ]]; then
+            echo "sha=${{ inputs.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out exact target SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.target.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          if [[ -f bun.lock || -f bun.lockb ]]; then
+            bun install --frozen-lockfile
+          else
+            bun install
+          fi
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Typecheck
+        run: bunx tsc --noEmit
+
+      - name: Tests
+        shell: bash
+        run: |
+          TEST_SCRIPT="$(node -p "require('./package.json').scripts?.test || ''")"
+          if [[ -z "$TEST_SCRIPT" ]]; then
+            echo "TEST_STATUS=not configured" >> "$GITHUB_ENV"
+            echo "No test script is configured; reporting tests as not configured, not passed."
+          else
+            echo "TEST_STATUS=configured" >> "$GITHUB_ENV"
+            bun test
+          fi
+
+      - name: Production build
+        run: bun run build
+
+      - name: Record verified SHA
+        run: |
+          echo "Release Gate verified exact SHA: ${{ steps.target.outputs.sha }}"
+          echo "Test status: ${TEST_STATUS:-configured}"
