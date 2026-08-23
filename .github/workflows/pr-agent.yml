@@ -1,0 +1,86 @@
+name: EZROME PR Agent
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  actions: read
+
+concurrency:
+  group: pr-agent-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  report:
+    name: Monitor and report exact PR SHA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report PR state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          EVENT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${PR_NUMBER:-}" ]]; then
+            HEAD_SHA="$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq .headRefOid)"
+            BASE="$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefName --jq .baseRefName)"
+            TITLE="$(gh pr view "$PR_NUMBER" --repo "$REPO" --json title --jq .title)"
+            echo "PR #$PR_NUMBER: $TITLE"
+            echo "Base: $BASE"
+            echo "Event SHA: $EVENT_SHA"
+            echo "Current PR head SHA: $HEAD_SHA"
+            if [[ "$EVENT_SHA" != "$HEAD_SHA" ]]; then
+              echo "STALE: event SHA differs from current PR head. This run cannot certify the PR."
+              exit 1
+            fi
+          else
+            echo "Manual run: verify the target SHA through Release Gate before treating this as release-ready."
+          fi
+
+      - name: Wait for Release Gate result
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..30}; do
+            CURRENT_SHA="$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq .headRefOid)"
+            if [[ "$CURRENT_SHA" != "$EXPECTED_SHA" ]]; then
+              echo "STALE: new commit landed. Previous gate result is invalid."
+              exit 1
+            fi
+            RUN_JSON="$(gh run list --repo "$REPO" --workflow release-gate.yml --limit 20 --json databaseId,headSha,status,conclusion,event --jq '[.[] | select(.headSha==env.EXPECTED_SHA and .event=="pull_request")] | first')"
+            STATUS="$(jq -r '.status // empty' <<<"$RUN_JSON")"
+            CONCLUSION="$(jq -r '.conclusion // empty' <<<"$RUN_JSON")"
+            if [[ "$STATUS" == "completed" ]]; then
+              if [[ "$CONCLUSION" == "success" ]]; then
+                echo "RELEASE GATE: PASS — exact SHA verified: $EXPECTED_SHA"
+                gh pr comment "$PR_NUMBER" --repo "$REPO" --body "## EZROME PR Agent\n\n🟢 **Release Gate PASS**\n\nExact SHA verified: \`$EXPECTED_SHA\`\n\nThe gate passed for the current PR head. Human release approval is still required. Automatic merge remains disabled."
+                exit 0
+              fi
+              echo "RELEASE GATE: $CONCLUSION for exact SHA $EXPECTED_SHA"
+              gh pr comment "$PR_NUMBER" --repo "$REPO" --body "## EZROME PR Agent\n\n🔴 **Release Gate did not pass**\n\nExact SHA: \`$EXPECTED_SHA\`\nConclusion: \`$CONCLUSION\`\n\nThe agent will not modify application code or bypass the gate. Inspect the Release Gate/CI Debug results."
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "Release Gate is still running or has not reported. No release certification issued."
+          exit 1
+
+      - name: Safety summary
+        if: always()
+        run: |
+          echo "No merge, force-push, branch deletion, or production-secret access is performed by this agent."
+          echo "A green result is valid only for the exact current PR head SHA."
