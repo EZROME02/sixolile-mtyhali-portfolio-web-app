@@ -20,7 +20,8 @@ export async function runAiProvider(
 
   if (!baseUrl || !apiKey || !model) {
     return {
-      answer: "The live AI provider is not configured yet. No live research result is being claimed.",
+      answer:
+        "The live AI provider is not configured yet. No live research result is being claimed.",
       status: "provider_unavailable",
       provenance: { kind: "ai-generated", sources: [], verified: false },
       generatedAt,
