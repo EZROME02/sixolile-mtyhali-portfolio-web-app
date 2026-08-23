@@ -1,0 +1,136 @@
+name: EZROME Release Gate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [feat/ezrome-ai-platform]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Set true only when you intentionally want the verified PR merged into main"
+        required: true
+        default: "false"
+        type: boolean
+      expected_sha:
+        description: "Exact PR head SHA that was reviewed"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ezrome-release-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Final quality gate
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.meta.outputs.sha }}
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Record verified SHA
+        id: meta
+        run: echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Test
+        run: bun test
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Production build
+        run: bun run build
+
+  guardian:
+    name: PR guardian
+    needs: quality
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PR is still the tested SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          TESTED_SHA: ${{ needs.quality.outputs.sha }}
+        run: |
+          CURRENT_SHA=$(gh pr view "$PR" --repo "$REPO" --json headRefOid --jq '.headRefOid')
+          test "$CURRENT_SHA" = "$TESTED_SHA" || {
+            echo "STALE_GATE: PR head changed after quality verification."
+            exit 1
+          }
+          echo "RELEASE_GATE=PASS"
+          echo "Verified SHA: $TESTED_SHA"
+          echo "PR remains open and draft until explicit release approval."
+
+  release:
+    name: Controlled release
+    needs: quality
+    if: github.event_name == 'workflow_dispatch' && inputs.release == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify repository and PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          PR_JSON=$(gh pr list --repo "$REPO" --head feat/ezrome-ai-platform --base main --state open --json number,isDraft,headRefOid)
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
+          test -n "$PR_NUMBER" || { echo "No open release PR found."; exit 1; }
+          CURRENT_SHA=$(echo "$PR_JSON" | jq -r '.[0].headRefOid')
+          test -n "$EXPECTED_SHA" || { echo "expected_sha is required for a controlled release."; exit 1; }
+          test "$CURRENT_SHA" = "$EXPECTED_SHA" || { echo "STALE_GATE: expected SHA does not match current PR head."; exit 1; }
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_ENV"
+          echo "CURRENT_SHA=$CURRENT_SHA" >> "$GITHUB_ENV"
+
+      - name: Re-run final quality gate against exact SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          git clone --no-checkout "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" release-check
+          cd release-check
+          git checkout "$CURRENT_SHA"
+          bun --version
+          bun install --frozen-lockfile
+          bun test
+          bun run lint
+          bun run build
+
+      - name: Re-check PR head before release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          FINAL_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq '.headRefOid')
+          test "$FINAL_SHA" = "$CURRENT_SHA" || { echo "STALE_GATE: PR changed during final verification."; exit 1; }
+
+      - name: Mark ready for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: gh pr ready "$PR_NUMBER" --repo "$REPO"
+
+      - name: Merge PR into main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: gh pr merge "$PR_NUMBER" --repo "$REPO" --merge --delete-branch=false
