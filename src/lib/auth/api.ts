@@ -81,11 +81,7 @@ export async function resolveSession(
   if (!sessionId) return null;
   const session = await sessions.find(sessionId);
   if (!session) return null;
-  const user = await users.findByEmail(
-    (await users.findByEmail as unknown as (email: string) => Promise<AuthUser & { passwordHash: string }>)(
-      session.userId,
-    ).then((account) => account?.email ?? ""),
-  );
+  const user = await users.findById(session.userId);
   return user ? { id: user.id, email: user.email } : null;
 }
 
