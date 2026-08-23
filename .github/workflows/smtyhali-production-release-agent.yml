@@ -2,12 +2,6 @@ name: s.mtyhali Production Release Agent
 
 on:
   workflow_dispatch:
-    inputs:
-      release:
-        description: "Set true only when intentionally publishing the production APK"
-        required: true
-        default: false
-        type: boolean
 
 permissions:
   contents: read
@@ -20,14 +14,10 @@ concurrency:
 jobs:
   production-release:
     name: Build and independently verify s.mtyhali production APK
-    if: inputs.release == true
+    environment:
+      name: production
     runs-on: ubuntu-latest
     env:
-      KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-      STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
-      KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-      KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-      EXPECTED_SIGNER_SHA256: ${{ secrets.SMTYHALI_SIGNER_SHA256 }}
       EXPECTED_PACKAGE: com.ezrome.app
 
     steps:
@@ -36,6 +26,12 @@ jobs:
 
       - name: Verify production credential inputs exist
         shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          EXPECTED_SIGNER_SHA256: ${{ secrets.SMTYHALI_SIGNER_SHA256 }}
         run: |
           set -euo pipefail
           test -n "$KEYSTORE_B64" || { echo "BLOCKED: ANDROID_KEYSTORE_BASE64 is not configured."; exit 1; }
@@ -64,35 +60,21 @@ jobs:
 
       - name: Materialize production keystore
         shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           set -euo pipefail
           umask 077
           printf '%s' "$KEYSTORE_B64" | base64 --decode > android/smtyhali-release.keystore
           test -s android/smtyhali-release.keystore
 
-      - name: Configure production signing without committing credentials
-        shell: bash
-        working-directory: android
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('app/build.gradle')
-          s = p.read_text()
-          signing = '''\n    signingConfigs {\n        production {\n            storeFile file('../smtyhali-release.keystore')\n            storePassword System.getenv('STORE_PASSWORD')\n            keyAlias System.getenv('KEY_ALIAS')\n            keyPassword System.getenv('KEY_PASSWORD')\n        }\n    }\n\n'''
-          if 'signingConfigs {' not in s:
-              s = s.replace('android {\n', 'android {\n' + signing)
-          if 'signingConfig signingConfigs.production' not in s:
-              s = s.replace('    defaultConfig {', '    buildTypes {\n        release {\n            signingConfig signingConfigs.production\n        }\n    }\n\n    defaultConfig {')
-          p.write_text(s)
-          PY
-
       - name: Build production-signed release APK
         working-directory: android
         env:
-          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/smtyhali-release.keystore
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: gradle --no-daemon --stacktrace assembleRelease
 
       - name: Locate and verify final APK
@@ -100,11 +82,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          APK=$(find android/app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' ! -name '*unsigned*' | head -n 1)
-          test -n "$APK" || { echo "BLOCKED: no signed release APK was produced."; exit 1; }
+          mapfile -t APKS < <(find android/app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' ! -name '*unsigned*' -print)
+          test "${#APKS[@]}" -eq 1 || { echo "BLOCKED: expected exactly one signed release APK; found ${#APKS[@]}."; exit 1; }
+          APK="${APKS[0]}"
           test -s "$APK"
           echo "path=$APK" >> "$GITHUB_OUTPUT"
-          echo "APK=$APK"
           stat -c 'APK_SIZE=%s' "$APK"
 
       - name: Verify APK package identity
@@ -114,9 +96,12 @@ jobs:
           APK='${{ steps.apk.outputs.path }}'
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | tee /tmp/badging.txt
           grep -F "package: name='$EXPECTED_PACKAGE'" /tmp/badging.txt
+          echo "PACKAGE_IDENTITY=PASS" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Extract signing certificate and verify s.mtyhali signer fingerprint
         shell: bash
+        env:
+          EXPECTED_SIGNER_SHA256: ${{ secrets.SMTYHALI_SIGNER_SHA256 }}
         run: |
           set -euo pipefail
           APK='${{ steps.apk.outputs.path }}'
@@ -126,12 +111,10 @@ jobs:
           test -n "$ACTUAL" || { echo "BLOCKED: signing certificate fingerprint could not be extracted."; exit 1; }
           test "$ACTUAL" = "$EXPECTED" || {
             echo "BLOCKED: signing certificate does not match the independently supplied s.mtyhali signer fingerprint."
-            echo "Actual fingerprint: $ACTUAL"
-            echo "Expected fingerprint: $EXPECTED"
             exit 1
           }
           echo "SIGNER_IDENTITY=s.mtyhali"
-          echo "Verified certificate SHA-256: $ACTUAL"
+          echo "SIGNER_VERIFICATION=PASS" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record generated APK SHA-256
         id: hash
@@ -143,7 +126,7 @@ jobs:
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "Generated APK SHA-256: $SHA" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload exact signed APK
+      - name: Upload exact verified APK
         uses: actions/upload-artifact@v4
         with:
           name: smtyhali-production-signed-apk-${{ github.sha }}
@@ -170,11 +153,11 @@ jobs:
           echo "Retrieved SHA-256: $RETRIEVED_SHA"
           test "$GENERATED_SHA" = "$RETRIEVED_SHA" || { echo "BLOCKED: retrieved artifact hash differs."; exit 1; }
           cmp -s "$GENERATED" "$RETRIEVED" || { echo "BLOCKED: retrieved artifact is not byte-for-byte identical."; exit 1; }
+          echo "ARTIFACT_SHA256=$GENERATED_SHA" >> "$GITHUB_STEP_SUMMARY"
           echo "BYTE_FOR_BYTE_MATCH=PASS" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Production release complete
+      - name: Release verification complete
         run: |
-          echo "PRODUCTION_RELEASE=COMPLETE"
+          echo "PRODUCTION_RELEASE_VERIFICATION=PASS"
           echo "SIGNING_IDENTITY=s.mtyhali"
-          echo "APK_SHA256=${{ steps.hash.outputs.sha }}"
-          echo "All production release gates passed."
+          echo "Publishing is intentionally not performed by this verification agent."
