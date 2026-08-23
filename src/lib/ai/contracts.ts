@@ -18,4 +18,5 @@ export type AiResult = {
     verified: boolean;
   };
   generatedAt: string;
+  authenticated: boolean;
 };
