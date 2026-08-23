@@ -37,7 +37,10 @@ export async function handleWorkspaceRequest(request: Request, env: AuthEnv): Pr
       workspace.data,
       new Date().toISOString(),
     );
-    return json({ workspace: await repositories.workspaces.findOwned(workspace.id, user.id) }, 200);
+    return json(
+      { workspace: await repositories.workspaces.findOwned(workspace.id, user.id) },
+      200,
+    );
   }
 
   return json({ error: "Method not allowed" }, 405);
@@ -52,7 +55,10 @@ function json(body: unknown, status: number): Response {
   return applySecurityHeaders(
     new Response(JSON.stringify(body), {
       status,
-      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      },
     }),
   );
 }
