@@ -3,7 +3,13 @@ import type { WorkspaceRecord } from "../workspace/contracts";
 
 type UserRow = { id: string; email: string; password_hash: string };
 type SessionRow = { id: string; user_id: string; expires_at: number };
-type WorkspaceRow = { id: string; owner_id: string; name: string; data: string; updated_at: string };
+type WorkspaceRow = {
+  id: string;
+  owner_id: string;
+  name: string;
+  data: string;
+  updated_at: string;
+};
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
