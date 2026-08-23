@@ -37,7 +37,9 @@ function Login() {
     <main className="min-h-screen bg-background px-4 py-12 sm:px-6">
       <section className="panel mx-auto max-w-md p-6 shadow-panel sm:p-8">
         <p className="eyebrow">EZROME.CO.ZA</p>
-        <h1 className="mt-3 text-3xl font-bold">{mode === "login" ? "Welcome back" : "Create your EZROME account"}</h1>
+        <h1 className="mt-3 text-3xl font-bold">
+          {mode === "login" ? "Welcome back" : "Create your EZROME account"}
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Your account unlocks an ownership-scoped persistent workspace.
         </p>
@@ -83,7 +85,9 @@ function Login() {
           {mode === "login" ? "Create a new account" : "I already have an account"}
         </button>
         <div className="mt-6 border-t border-border pt-5 text-xs text-muted-foreground">
-          <Link to="/" className="hover:text-primary">Back to EZROME</Link>
+          <Link to="/" className="hover:text-primary">
+            Back to EZROME
+          </Link>
         </div>
       </section>
     </main>
