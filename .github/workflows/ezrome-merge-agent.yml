@@ -1,0 +1,94 @@
+name: EZROME Merge Agent
+
+on:
+  workflow_run:
+    workflows: ["EZROME Release Gate"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+concurrency:
+  group: ezrome-merge-agent-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    name: Merge verified PR
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve exact PR and SHA
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_SHA='${{ github.event.workflow_run.head_sha }}'
+          PR_NUMBER=$(gh api \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/$REPO/actions/runs/$RUN_ID/pull_requests" \
+            --jq '.[0].number // empty')
+          test -n "$PR_NUMBER" || { echo "No PR is associated with this successful gate run."; exit 1; }
+          CURRENT_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq '.headRefOid')
+          test "$CURRENT_SHA" = "$RUN_SHA" || {
+            echo "STALE_GATE: successful run is not for the current PR head."
+            exit 1
+          }
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "sha=$CURRENT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Verify required checks are still green
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ steps.pr.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "/repos/$REPO/commits/$SHA/status" \
+            --jq '.state' | grep -qx success
+
+      - name: Confirm PR is open and current
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.number }}
+          SHA: ${{ steps.pr.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PR_JSON=$(gh pr view "$PR" --repo "$REPO" --json state,isDraft,headRefOid,mergeStateStatus)
+          test "$(jq -r '.state' <<<"$PR_JSON")" = "OPEN"
+          test "$(jq -r '.headRefOid' <<<"$PR_JSON")" = "$SHA"
+          echo "PR #$PR is current at $SHA."
+          echo "Merge state: $(jq -r '.mergeStateStatus' <<<"$PR_JSON")"
+
+      - name: Make PR ready for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.number }}
+        run: gh pr ready "$PR" --repo "$REPO"
+
+      - name: Merge PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh pr merge "$PR" --repo "$REPO" --merge --delete-branch=false
+
+      - name: Report
+        run: |
+          echo "EZROME Merge Agent completed the normal GitHub merge operation."
+          echo "No force-push, check bypass, branch deletion, or production-secret access was used."
