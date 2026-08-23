@@ -4,18 +4,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+/* EZROME Tech Slideshow design system.
+ * This file intentionally keeps the existing semantic tokens and utility
+ * aliases used by the portfolio routes, while adopting the slideshow's
+ * dark data-grid, glass, mono-label and signal-accent visual language.
  */
 
 @theme inline {
@@ -25,6 +17,8 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -47,37 +41,57 @@
   --color-navy: var(--navy);
   --color-navy-deep: var(--navy-deep);
   --color-surface: var(--surface);
+  --color-cyan: var(--cyan);
+  --color-violet: var(--violet);
+  --color-signal: var(--signal);
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --shadow-glow: 0 0 40px -8px oklch(0.78 0.13 205 / 0.45);
-  --shadow-panel: 0 30px 90px -30px oklch(0.15 0.06 250 / 0.85);
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --shadow-glow: var(--shadow-glow-value);
+  --shadow-panel: var(--shadow-panel-value);
 }
 
 :root {
-  --radius: 0.75rem;
-  /* navy / turquoise / white identity */
-  --navy-deep: oklch(0.19 0.055 255);
-  --navy: oklch(0.26 0.065 256);
-  --background: oklch(0.22 0.06 256);
-  --foreground: oklch(0.98 0.005 240);
-  --surface: oklch(0.29 0.055 256);
-  --card: oklch(0.28 0.055 256);
-  --card-foreground: oklch(0.98 0.005 240);
-  --popover: oklch(0.28 0.055 256);
-  --popover-foreground: oklch(0.98 0.005 240);
-  --primary: oklch(0.78 0.13 202);
-  --primary-foreground: oklch(0.19 0.055 255);
-  --secondary: oklch(0.33 0.05 256);
-  --secondary-foreground: oklch(0.98 0.005 240);
-  --muted: oklch(0.33 0.05 256);
-  --muted-foreground: oklch(0.79 0.02 240);
-  --accent: oklch(0.86 0.11 195);
-  --accent-foreground: oklch(0.19 0.055 255);
-  --destructive: oklch(0.6 0.2 25);
-  --destructive-foreground: oklch(0.98 0.005 240);
-  --border: oklch(0.42 0.05 240 / 0.55);
-  --input: oklch(0.42 0.05 240 / 0.55);
-  --ring: oklch(0.78 0.13 202);
+  --radius: 0.25rem;
+  --background: oklch(0.16 0.035 264);
+  --foreground: oklch(0.96 0.01 240);
+  --card: oklch(0.21 0.04 264 / 70%);
+  --card-foreground: oklch(0.96 0.01 240);
+  --popover: oklch(0.19 0.04 264);
+  --popover-foreground: oklch(0.96 0.01 240);
+  --primary: oklch(0.68 0.19 248);
+  --primary-foreground: oklch(0.14 0.03 264);
+  --secondary: oklch(0.26 0.05 264);
+  --secondary-foreground: oklch(0.96 0.01 240);
+  --muted: oklch(0.24 0.04 264);
+  --muted-foreground: oklch(0.72 0.03 250);
+  --accent: oklch(0.82 0.16 195);
+  --accent-foreground: oklch(0.14 0.03 264);
+  --destructive: oklch(0.62 0.22 25);
+  --destructive-foreground: oklch(0.98 0.01 240);
+  --border: oklch(0.68 0.19 248 / 22%);
+  --input: oklch(0.68 0.19 248 / 25%);
+  --ring: oklch(0.82 0.16 195);
+
+  --navy: oklch(0.19 0.04 264);
+  --navy-deep: oklch(0.14 0.03 264);
+  --surface: oklch(0.21 0.04 264);
+
+  --cyan: oklch(0.85 0.15 195);
+  --violet: oklch(0.66 0.22 300);
+  --signal: oklch(0.82 0.2 150);
+
+  --gradient-hero: radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--primary) 28%, transparent), transparent 55%),
+    radial-gradient(circle at 80% 70%, color-mix(in oklab, var(--violet) 24%, transparent), transparent 55%);
+  --gradient-line: linear-gradient(90deg, var(--primary), var(--cyan), var(--violet), var(--signal));
+  --shadow-glow-value: 0 0 0 1px color-mix(in oklab, var(--primary) 30%, transparent),
+    0 24px 60px -24px color-mix(in oklab, var(--cyan) 45%, transparent);
+  --shadow-panel-value: 0 30px 90px -30px color-mix(in oklab, var(--background) 85%, black);
+  --grid-line: color-mix(in oklab, var(--primary) 14%, transparent);
+}
+
+.dark {
+  color-scheme: dark;
 }
 
 @layer base {
@@ -85,13 +99,17 @@
     border-color: var(--color-border);
   }
 
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    background-image:
-      radial-gradient(circle at 12% 0%, oklch(0.4 0.09 220 / 0.5) 0, transparent 45%),
-      radial-gradient(circle at 92% 12%, oklch(0.35 0.08 240 / 0.55) 0, transparent 40%);
+    -webkit-font-smoothing: antialiased;
+    background-image: var(--gradient-hero);
     background-attachment: fixed;
   }
 
@@ -102,27 +120,89 @@
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
+
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 30%, transparent);
+    color: var(--foreground);
+  }
 }
 
-@utility grid-lines {
-  background-image:
-    linear-gradient(oklch(0.78 0.13 202 / 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.78 0.13 202 / 0.07) 1px, transparent 1px);
+@utility grid-field {
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 56px 56px;
+  animation: grid-drift 24s linear infinite;
 }
 
+/* Compatibility alias for the existing portfolio pages. */
+@utility grid-lines {
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  animation: grid-drift 24s linear infinite;
+}
+
+@utility glass-card {
+  background: color-mix(in oklab, var(--background) 55%, transparent);
+  border: 1px solid color-mix(in oklab, var(--primary) 26%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: var(--shadow-glow-value);
+}
+
+/* Existing portfolio panels inherit the Tech Slideshow glass treatment. */
 @utility panel {
-  background: linear-gradient(150deg, var(--color-card), oklch(0.24 0.055 256));
-  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--background) 55%, transparent);
+  border: 1px solid color-mix(in oklab, var(--primary) 26%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: var(--shadow-glow-value);
   border-radius: var(--radius-xl);
 }
 
-@utility eyebrow {
-  font-family: var(--font-display);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--color-primary);
+@utility rule-line {
+  background: var(--gradient-line);
 }
 
+@utility label-mono {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  font-size: 0.68rem;
+}
+
+@utility eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  font-size: 0.68rem;
+  color: var(--color-cyan);
+}
+
+@keyframes grid-drift {
+  from { background-position: 0 0; }
+  to { background-position: 56px 56px; }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); opacity: 0; }
+  40% { opacity: 0.7; }
+  100% { transform: translateY(2000%); opacity: 0; }
+}
+
+@keyframes slide-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pulse-node {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
