@@ -8,10 +8,17 @@ const limiter = createRateLimiter({ limit: 20, windowMs: 60_000 });
 
 type RequestEnv = AiProviderEnv & { clientKey?: string };
 
-export async function handleAiRequest(request: Request, env: RequestEnv): Promise<Response> {
+export async function handleAiRequest(
+  request: Request,
+  env: RequestEnv,
+): Promise<Response> {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
-  const clientKey = env.clientKey ?? request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
+  const clientKey =
+    env.clientKey ??
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "anonymous";
   if (!limiter.allow(clientKey)) return json({ error: "Too many requests" }, 429);
 
   const parsed = await parseJsonBody(request, AiRequestSchema);
@@ -27,8 +34,13 @@ export async function handleAiRequest(request: Request, env: RequestEnv): Promis
 }
 
 function json(body: unknown, status: number): Response {
-  return applySecurityHeaders(new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
-  }));
+  return applySecurityHeaders(
+    new Response(JSON.stringify(body), {
+      status,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    }),
+  );
 }
