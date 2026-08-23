@@ -17,26 +17,32 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    def signingEnv = { String name ->
+    def productionSigningReady = [
+        'ANDROID_KEYSTORE_PATH',
+        'ANDROID_STORE_PASSWORD',
+        'ANDROID_KEY_ALIAS',
+        'ANDROID_KEY_PASSWORD'
+    ].every { name ->
         def value = System.getenv(name)
-        if (value == null || value.trim().isEmpty()) {
-            throw new GradleException("Missing required production signing environment variable: ${name}")
-        }
-        return value
+        value != null && !value.trim().isEmpty()
     }
 
     signingConfigs {
         release {
-            storeFile file(signingEnv('ANDROID_KEYSTORE_PATH'))
-            storePassword signingEnv('ANDROID_STORE_PASSWORD')
-            keyAlias signingEnv('ANDROID_KEY_ALIAS')
-            keyPassword signingEnv('ANDROID_KEY_PASSWORD')
+            if (productionSigningReady) {
+                storeFile file(System.getenv('ANDROID_KEYSTORE_PATH'))
+                storePassword System.getenv('ANDROID_STORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (productionSigningReady) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
