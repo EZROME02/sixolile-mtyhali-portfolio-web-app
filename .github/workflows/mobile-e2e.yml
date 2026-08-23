@@ -24,7 +24,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Install Playwright Chromium
-        run: npx playwright@1.55.0 install --with-deps chromium
+        run: npx @playwright/test@1.55.0 install --with-deps chromium
 
       - name: Run mobile E2E
-        run: npx playwright@1.55.0 test
+        run: npx @playwright/test@1.55.0 test
