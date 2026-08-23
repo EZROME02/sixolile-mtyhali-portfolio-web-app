@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export const Route = createFileRoute("/workspace")({
   head: () => ({ meta: [{ title: "Workspace | EZROME" }] }),
@@ -25,11 +25,7 @@ function Workspace() {
   const [status, setStatus] = useState("Loading workspace…");
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    void load();
-  }, []);
-
-  async function load() {
+  const load = useCallback(async () => {
     const meResponse = await fetch("/api/auth/me");
     const me = (await meResponse.json()) as { user?: { email: string } | null };
     if (!me.user) {
@@ -58,7 +54,11 @@ function Workspace() {
       setNotes("");
     }
     setStatus(`Saved ${new Date(payload.workspace.updatedAt).toLocaleString()}`);
-  }
+  }, [navigate]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   async function save() {
     setSaving(true);
@@ -96,8 +96,19 @@ function Workspace() {
             <p className="mt-2 text-sm text-muted-foreground">{email ?? ""}</p>
           </div>
           <div className="flex gap-2">
-            <Link to="/ai" className="rounded-lg border border-border px-4 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary hover:text-primary">AI</Link>
-            <button type="button" onClick={() => void logout()} className="rounded-lg border border-border px-4 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary hover:text-primary">Sign out</button>
+            <Link
+              to="/ai"
+              className="rounded-lg border border-border px-4 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary hover:text-primary"
+            >
+              AI
+            </Link>
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className="rounded-lg border border-border px-4 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary hover:text-primary"
+            >
+              Sign out
+            </button>
           </div>
         </header>
 
@@ -134,7 +145,8 @@ function Workspace() {
         </section>
 
         <p className="mt-6 text-xs text-muted-foreground">
-          Ownership is enforced on the server. The browser stores only the workspace identifier; account sessions and workspace data are protected by the server boundary.
+          Ownership is enforced on the server. The browser stores only the workspace identifier;
+          account sessions and workspace data are protected by the server boundary.
         </p>
       </div>
     </main>
