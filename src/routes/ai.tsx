@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 
 export const Route = createFileRoute("/ai")({
   head: () => ({
@@ -27,6 +27,7 @@ type AiResult = {
     verified: boolean;
   };
   generatedAt: string;
+  authenticated: boolean;
 };
 
 function AiWorkspace() {
@@ -35,7 +36,15 @@ function AiWorkspace() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<AiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
   const normalized = useMemo(() => query.trim(), [query]);
+
+  useEffect(() => {
+    void fetch("/api/auth/me")
+      .then((response) => response.json() as Promise<{ user?: unknown | null }>)
+      .then((payload) => setSignedIn(Boolean(payload.user)))
+      .catch(() => setSignedIn(false));
+  }, []);
 
   async function run() {
     if (!normalized) return;
@@ -74,12 +83,20 @@ function AiWorkspace() {
               Intelligence, research and productivity in one electric workspace.
             </p>
           </div>
-          <a
-            href="/"
-            className="rounded-lg border border-primary/50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary/10"
-          >
-            Portfolio
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to={signedIn ? "/workspace" : "/login"}
+              className="rounded-lg border border-primary/50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary/10"
+            >
+              {signedIn ? "Workspace" : "Sign in"}
+            </Link>
+            <a
+              href="/"
+              className="rounded-lg border border-border px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:border-primary hover:text-primary"
+            >
+              Portfolio
+            </a>
+          </div>
         </header>
 
         <section className="mt-8 panel grid-lines p-5 shadow-panel sm:p-8">
@@ -169,6 +186,9 @@ function AiWorkspace() {
               </span>
               <span className="rounded-full border border-border px-3 py-1">
                 {result.provenance.sources.length} source(s)
+              </span>
+              <span className="rounded-full border border-border px-3 py-1">
+                {result.authenticated ? "Authenticated workspace" : "Anonymous / non-persistent"}
               </span>
             </div>
             <p className="mt-4 text-[11px] text-muted-foreground">
