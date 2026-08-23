@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useSwipeSectionNavigation } from "../hooks/useSwipeSectionNavigation";
 
+const CV_URL = "/__l5e/assets-v1/a796f034-ece9-4541-a34a-3caa7fbee2c9/Sixolile_Ezrome_Mtyhali_CV.pdf";
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -95,7 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "canonical", href: "https://ezrome.co.za" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com" , crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap",
@@ -133,6 +135,14 @@ function RootComponent() {
         console.warn("EZROME offline support could not be registered", error);
       });
     }
+
+    document.querySelectorAll<HTMLAnchorElement>('a[href^="mailto:"][href*="CV"]')
+      .forEach((anchor) => {
+        anchor.href = CV_URL;
+        anchor.download = "Sixolile_Ezrome_Mtyhali_CV.pdf";
+        anchor.textContent = "Download CV";
+        anchor.setAttribute("aria-label", "Download CV");
+      });
   }, []);
 
   return (
