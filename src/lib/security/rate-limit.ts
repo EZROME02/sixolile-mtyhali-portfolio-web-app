@@ -6,7 +6,11 @@ type RateLimiterOptions = {
   maxKeys?: number;
 };
 
-export function createRateLimiter({ limit, windowMs, maxKeys = 10_000 }: RateLimiterOptions) {
+export function createRateLimiter({
+  limit,
+  windowMs,
+  maxKeys = 10_000,
+}: RateLimiterOptions) {
   if (limit < 1 || windowMs < 1 || maxKeys < 1) throw new Error("Invalid rate limiter configuration");
   const buckets = new Map<string, Bucket>();
 
