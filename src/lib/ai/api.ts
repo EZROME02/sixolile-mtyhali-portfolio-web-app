@@ -8,10 +8,7 @@ const limiter = createRateLimiter({ limit: 20, windowMs: 60_000 });
 
 type RequestEnv = AiProviderEnv & { clientKey?: string };
 
-export async function handleAiRequest(
-  request: Request,
-  env: RequestEnv,
-): Promise<Response> {
+export async function handleAiRequest(request: Request, env: RequestEnv): Promise<Response> {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const clientKey =
