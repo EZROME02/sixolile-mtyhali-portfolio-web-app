@@ -11,6 +11,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { useSwipeSectionNavigation } from "../hooks/useSwipeSectionNavigation";
+
+const CV_URL = "/__l5e/assets-v1/a796f034-ece9-4541-a34a-3caa7fbee2c9/Sixolile_Ezrome_Mtyhali_CV.pdf";
 
 function NotFoundComponent() {
   return (
@@ -92,8 +95,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "canonical", href: "https://ezrome.co.za" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com" , crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap",
@@ -123,6 +127,24 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useSwipeSectionNavigation();
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((error) => {
+        console.warn("EZROME offline support could not be registered", error);
+      });
+    }
+
+    document.querySelectorAll<HTMLAnchorElement>('a[href^="mailto:"][href*="CV"]')
+      .forEach((anchor) => {
+        anchor.href = CV_URL;
+        anchor.download = "Sixolile_Ezrome_Mtyhali_CV.pdf";
+        anchor.textContent = "Download CV";
+        anchor.setAttribute("aria-label", "Download CV");
+      });
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
