@@ -15,7 +15,13 @@ function fromBase64Url(value: string): Uint8Array {
 }
 
 async function derive(password: string, salt: Uint8Array): Promise<ArrayBuffer> {
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
   return crypto.subtle.deriveBits(
     { name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
     key,
@@ -24,7 +30,9 @@ async function derive(password: string, salt: Uint8Array): Promise<ArrayBuffer> 
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  if (password.length < 12 || password.length > 128) throw new Error("Invalid password length");
+  if (password.length < 12 || password.length > 128) {
+    throw new Error("Invalid password length");
+  }
   const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
   const digest = new Uint8Array(await derive(password, salt));
   return `pbkdf2-sha256$${PBKDF2_ITERATIONS}$${toBase64Url(salt)}$${toBase64Url(digest)}`;
@@ -33,13 +41,17 @@ export async function hashPassword(password: string): Promise<string> {
 export async function verifyPassword(password: string, encoded: string): Promise<boolean> {
   try {
     const [algorithm, iterationsText, saltText, digestText] = encoded.split("$");
-    if (algorithm !== "pbkdf2-sha256" || Number(iterationsText) !== PBKDF2_ITERATIONS) return false;
+    if (algorithm !== "pbkdf2-sha256" || Number(iterationsText) !== PBKDF2_ITERATIONS) {
+      return false;
+    }
     const salt = fromBase64Url(saltText);
     const expected = fromBase64Url(digestText);
     const actual = new Uint8Array(await derive(password, salt));
     if (actual.length !== expected.length) return false;
     let difference = 0;
-    for (let index = 0; index < actual.length; index += 1) difference |= actual[index] ^ expected[index];
+    for (let index = 0; index < actual.length; index += 1) {
+      difference |= actual[index] ^ expected[index];
+    }
     return difference === 0;
   } catch {
     return false;
