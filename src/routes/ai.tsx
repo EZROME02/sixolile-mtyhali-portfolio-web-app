@@ -179,7 +179,8 @@ function AiWorkspace() {
 
         <footer className="mt-10 border-t border-border pt-6 text-xs text-muted-foreground">
           <strong className="text-primary">EZROME</strong> · ezrome.co.za · Built by Sixolile
-          Ezrome Mtyhali
+          Ezrome
+          Mtyhali
         </footer>
       </div>
     </main>
