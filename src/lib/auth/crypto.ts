@@ -22,8 +22,9 @@ async function derive(password: string, salt: Uint8Array): Promise<ArrayBuffer> 
     false,
     ["deriveBits"],
   );
+  const saltBuffer = salt.slice().buffer;
   return crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
+    { name: "PBKDF2", salt: saltBuffer, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
     key,
     HASH_BYTES * 8,
   );
@@ -40,7 +41,10 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(password: string, encoded: string): Promise<boolean> {
   try {
-    const [algorithm, iterationsText, saltText, digestText] = encoded.split("$");
+    const parts = encoded.split("$");
+    if (parts.length !== 4) return false;
+    const [algorithm, iterationsText, saltText, digestText] = parts;
+    if (!algorithm || !iterationsText || !saltText || !digestText) return false;
     if (algorithm !== "pbkdf2-sha256" || Number(iterationsText) !== PBKDF2_ITERATIONS) {
       return false;
     }
@@ -50,7 +54,7 @@ export async function verifyPassword(password: string, encoded: string): Promise
     if (actual.length !== expected.length) return false;
     let difference = 0;
     for (let index = 0; index < actual.length; index += 1) {
-      difference |= actual[index] ^ expected[index];
+      difference |= (actual[index] ?? 0) ^ (expected[index] ?? 0);
     }
     return difference === 0;
   } catch {
