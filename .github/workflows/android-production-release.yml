@@ -130,7 +130,7 @@ jobs:
           EXPECTED_APK_SHA256: ${{ steps.hash.outputs.apk_sha256 }}
         run: |
           set -euo pipefail
-          original="android/app/build/outputs/apk/release/app-release.apk"
+          original="app/build/outputs/apk/release/app-release.apk"
           retrieved="$RUNNER_TEMP/retrieved-production/app-release.apk"
           test -s "$retrieved"
           cmp -- "$original" "$retrieved"
