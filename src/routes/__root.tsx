@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useSwipeSectionNavigation } from "../hooks/useSwipeSectionNavigation";
+import { buildStructuredData, SEO_SITE_DESCRIPTION, SEO_SITE_TITLE, SEO_SITE_URL } from "../lib/seo";
 
 const CV_URL = "/__l5e/assets-v1/a796f034-ece9-4541-a34a-3caa7fbee2c9/Sixolile_Ezrome_Mtyhali_CV.pdf";
 
@@ -80,29 +81,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "EZROME | AI, Web, Work & Knowledge" },
-      {
-        name: "description",
-        content:
-          "EZROME — an AI, web, productivity and knowledge platform by Sixolile Ezrome Mtyhali.",
-      },
+      { title: SEO_SITE_TITLE },
+      { name: "description", content: SEO_SITE_DESCRIPTION },
       { name: "author", content: "Sixolile Ezrome Mtyhali" },
-      { name: "application-name", content: "EZROME AI" },
+      { name: "application-name", content: "EZROME" },
       { name: "theme-color", content: "#071a33" },
       { property: "og:site_name", content: "EZROME" },
-      { property: "og:url", content: "https://ezrome.co.za" },
+      { property: "og:title", content: SEO_SITE_TITLE },
+      { property: "og:description", content: SEO_SITE_DESCRIPTION },
+      { property: "og:type", content: "profile" },
+      { property: "og:url", content: SEO_SITE_URL },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "canonical", href: "https://ezrome.co.za" },
+      { rel: "canonical", href: SEO_SITE_URL },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com" , crossOrigin: "anonymous" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(buildStructuredData()),
+      },
     ],
   }),
   shellComponent: RootShell,
