@@ -10,8 +10,6 @@ overwrite an existing output directory.
 from __future__ import annotations
 
 import base64
-import getpass
-import hashlib
 import os
 import re
 import secrets
@@ -23,6 +21,7 @@ from pathlib import Path
 APPROVAL_PHRASE = "GENERATE EZROME PRODUCTION SIGNING IDENTITY"
 ALIAS = "s.mtyhali"
 PASSWORD_LENGTH = 32
+GITIGNORE_ENTRY = ".ezrome-signing/"
 
 
 def normalize_fingerprint(value: str) -> str:
@@ -87,7 +86,7 @@ def verify_keystore(keytool: str, keystore: Path, store_password: str) -> str:
         ]
     )
     fingerprint = extract_sha256(output)
-    if not fingerprint or len(fingerprint) != 64:
+    if len(fingerprint) != 64:
         raise RuntimeError("Certificate fingerprint is not a valid SHA-256 digest.")
     return fingerprint
 
@@ -151,20 +150,37 @@ def write_manifest(path: Path, fingerprint: str) -> None:
     os.chmod(path, 0o600)
 
 
+def protect_output_from_git(repo_root: Path) -> None:
+    gitignore = repo_root / ".gitignore"
+    if not gitignore.exists():
+        gitignore.write_text(GITIGNORE_ENTRY + "\n", encoding="utf-8")
+        return
+    existing = gitignore.read_text(encoding="utf-8").splitlines()
+    if GITIGNORE_ENTRY not in existing:
+        with gitignore.open("a", encoding="utf-8") as handle:
+            if existing and not gitignore.read_text(encoding="utf-8").endswith("\n"):
+                handle.write("\n")
+            handle.write("\n# EZROME production signing material — never commit\n")
+            handle.write(GITIGNORE_ENTRY + "\n")
+
+
 def main() -> int:
     print("EZROME Production Signing Setup Agent")
     print("This will create a new Android signing identity locally.")
     print("It will not upload credentials to GitHub or print passwords.\n")
-    approval = input(f'Type exactly: {APPROVAL_PHRASE}\n> ')
+    approval = input(f"Type exactly: {APPROVAL_PHRASE}\n> ")
     if not validate_approval(approval):
         print("Approval not confirmed. Nothing was generated.")
         return 2
 
-    output_dir = Path.cwd() / ".ezrome-signing"
+    repo_root = Path.cwd()
+    output_dir = repo_root / ".ezrome-signing"
     validate_output_path(output_dir)
 
     keytool = require_tool("keytool")
     output_dir.mkdir(mode=0o700)
+    protect_output_from_git(repo_root)
+
     keystore = output_dir / "s.mtyhali-production.keystore"
     secret_file = output_dir / "github-actions-secrets.env"
     manifest = output_dir / "signing-manifest.txt"
