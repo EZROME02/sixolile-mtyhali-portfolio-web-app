@@ -1,0 +1,118 @@
+name: EZROME Production Dispatcher + Guardian
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: ezrome-production-dispatcher
+  cancel-in-progress: false
+
+jobs:
+  dispatch-and-guard:
+    name: Dispatch production and verify evidence
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch production workflow
+        id: dispatch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY%%/*}"
+          repo="${GITHUB_REPOSITORY##*/}"
+          workflow="android-production-release.yml"
+          ref="${GITHUB_REF_NAME}"
+
+          if [ "$ref" != "main" ]; then
+            echo "Production dispatch is restricted to main." >&2
+            exit 1
+          fi
+
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/$owner/$repo/actions/workflows/$workflow/dispatches" \
+            -f ref=main
+
+          echo "Dispatched $workflow on main."
+
+      - name: Wait for dispatched production run
+        id: wait
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          workflow="android-production-release.yml"
+          sha="${GITHUB_SHA}"
+          for attempt in $(seq 1 60); do
+            run_json="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow}/runs?branch=main&event=workflow_dispatch&per_page=20")"
+            run_id="$(printf '%s' "$run_json" | jq -r --arg sha "$sha" '.workflow_runs[] | select(.head_sha == $sha) | .id' | head -n1)"
+            if [ -n "$run_id" ]; then
+              echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+              echo "Production run: $run_id"
+              break
+            fi
+            sleep 10
+          done
+          if [ -z "${run_id:-}" ]; then
+            echo "No dispatched production run found for commit $sha." >&2
+            exit 1
+          fi
+
+      - name: Wait for production completion
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ steps.wait.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 120); do
+            status="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/$RUN_ID" --jq '.status')"
+            conclusion="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/$RUN_ID" --jq '.conclusion // ""')"
+            echo "Production run $RUN_ID: $status $conclusion"
+            if [ "$status" = "completed" ]; then
+              if [ "$conclusion" != "success" ]; then
+                exit 1
+              fi
+              break
+            fi
+            sleep 15
+          done
+
+      - name: Verify production run evidence
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ steps.wait.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          run_json="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/$RUN_ID")"
+          test "$(printf '%s' "$run_json" | jq -r '.head_sha')" = "$GITHUB_SHA"
+          test "$(printf '%s' "$run_json" | jq -r '.conclusion')" = "success"
+
+          jobs="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/$RUN_ID/jobs?per_page=100")"
+          failed="$(printf '%s' "$jobs" | jq '[.jobs[] | select(.conclusion != "success" and .conclusion != "skipped")] | length')"
+          test "$failed" = "0"
+
+          artifacts="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/$RUN_ID/artifacts?per_page=100")"
+          count="$(printf '%s' "$artifacts" | jq '[.artifacts[] | select(.expired == false and (.name | startswith("ezrome-android-production-")))] | length')"
+          test "$count" -ge 1
+
+      - name: Publish Guardian result
+        env:
+          RUN_ID: ${{ steps.wait.outputs.run_id }}
+        run: |
+          {
+            echo '## EZROME Production Dispatcher + Guardian — VERIFIED'
+            echo
+            echo "- **Production run:** #$RUN_ID"
+            echo "- **Commit:** \`${GITHUB_SHA}\`"
+            echo '- **Workflow:** `android-production-release.yml`'
+            echo '- **Run conclusion:** `success`'
+            echo '- **Artifact evidence:** present'
+            echo '- **Guardian:** all exposed run/job/artifact gates passed'
+          } >> "$GITHUB_STEP_SUMMARY"
