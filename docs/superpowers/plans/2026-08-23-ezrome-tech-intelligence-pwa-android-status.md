@@ -9,4 +9,4 @@ Completed in source:
 - The visible portfolio CTA is now exactly **Download CV** and points to the canonical CV asset with a download filename.
 - Mobile Playwright coverage is configured for CV download behavior and swipe navigation.
 
-Verification requires a real GitHub Actions run. Android production signing/release remains protected and is not claimed as published until the release gate and production approval succeed.
+Verification still requires a real GitHub Actions run. Android production signing/release remains protected and is not claimed as published until the release gate and production approval succeed.
