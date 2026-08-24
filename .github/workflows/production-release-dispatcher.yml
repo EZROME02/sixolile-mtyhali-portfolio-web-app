@@ -1,0 +1,183 @@
+name: EZROME Production Release Dispatcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to release from
+        required: true
+        default: main
+        type: string
+      timeout_minutes:
+        description: Maximum minutes to wait for the production release
+        required: true
+        default: '30'
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  dispatch-and-verify:
+    name: Dispatch and verify production release
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ secrets.DISPATCHER_GITHUB_TOKEN }}
+      REPOSITORY: ${{ github.repository }}
+      RELEASE_WORKFLOW: android-production-release.yml
+      RELEASE_REF: ${{ inputs.ref }}
+      TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
+
+    steps:
+      - name: Validate dispatcher credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$GH_TOKEN" || {
+            echo 'Missing DISPATCHER_GITHUB_TOKEN repository secret.' >&2
+            exit 1
+          }
+
+      - name: Dispatch s.mtyhali production release
+        id: dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "started_at=$started_at" >> "$GITHUB_OUTPUT"
+
+          gh api \
+            --method POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "/repos/$REPOSITORY/actions/workflows/$RELEASE_WORKFLOW/dispatches" \
+            -f ref="$RELEASE_REF"
+
+          echo "Production release dispatched for ref: $RELEASE_REF"
+
+      - name: Wait for dispatched production release
+        id: wait
+        shell: bash
+        run: |
+          set -euo pipefail
+          started_epoch="$(date -d '${{ steps.dispatch.outputs.started_at }}' +%s)"
+          deadline=$((started_epoch + TIMEOUT_MINUTES * 60))
+          run_id=''
+
+          while [ "$(date +%s)" -lt "$deadline" ]; do
+            runs="$(gh api \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "/repos/$REPOSITORY/actions/workflows/$RELEASE_WORKFLOW/runs?event=workflow_dispatch&branch=$RELEASE_REF&per_page=20")"
+
+            candidate="$(printf '%s' "$runs" | jq -r --argjson started "$started_epoch" \
+              '[.workflow_runs[] | select((.created_at | fromdateiso8601) >= $started) | {id,run_number,status,conclusion,html_url,head_sha,created_at}] | sort_by(.id) | last // empty')"
+
+            if [ -n "$candidate" ]; then
+              run_id="$(printf '%s' "$candidate" | jq -r '.id')"
+              echo "$candidate" | jq .
+              break
+            fi
+
+            sleep 10
+          done
+
+          if [ -z "$run_id" ]; then
+            echo "Timed out waiting for the dispatched production release run." >&2
+            exit 1
+          fi
+
+          while :; do
+            run="$(gh api \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "/repos/$REPOSITORY/actions/runs/$run_id")"
+            status="$(printf '%s' "$run" | jq -r '.status')"
+            conclusion="$(printf '%s' "$run" | jq -r '.conclusion // ""')"
+
+            echo "run_id=$run_id status=$status conclusion=$conclusion"
+            if [ "$status" = completed ]; then
+              printf '%s' "$run" > "$RUNNER_TEMP/release-run.json"
+              echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+              break
+            fi
+
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "Timed out waiting for production release run $run_id." >&2
+              exit 1
+            fi
+            sleep 15
+          done
+
+      - name: Fail if production release failed
+        shell: bash
+        run: |
+          set -euo pipefail
+          run="$RUNNER_TEMP/release-run.json"
+          conclusion="$(jq -r '.conclusion' "$run")"
+          url="$(jq -r '.html_url' "$run")"
+
+          echo "Production release run: $url"
+          echo "Production release conclusion: $conclusion"
+
+          if [ "$conclusion" != success ]; then
+            echo 'Production release failed. Showing failed job logs:' >&2
+            gh run view "$(jq -r '.id' "$run")" --log-failed || true
+            exit 1
+          fi
+
+      - name: Download exact production APK artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id="$(jq -r '.id' "$RUNNER_TEMP/release-run.json")"
+          artifact_id="$(gh api \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "/repos/$REPOSITORY/actions/runs/$run_id/artifacts" \
+            | jq -r '[.artifacts[] | select(.name | startswith("ezrome-android-production-")) | select(.expired == false)] | sort_by(.id) | last.id // empty')"
+
+          test -n "$artifact_id" || {
+            echo 'Verified production APK artifact was not found.' >&2
+            exit 1
+          }
+
+          mkdir -p "$RUNNER_TEMP/production-artifact"
+          gh api \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "/repos/$REPOSITORY/actions/artifacts/$artifact_id/zip" \
+            > "$RUNNER_TEMP/production-artifact/artifact.zip"
+
+          unzip -q "$RUNNER_TEMP/production-artifact/artifact.zip" -d "$RUNNER_TEMP/production-artifact/unpacked"
+          apk="$RUNNER_TEMP/production-artifact/unpacked/app-release.apk"
+          test -s "$apk"
+          sha256sum "$apk" | tee "$RUNNER_TEMP/production-artifact/apk-sha256.txt"
+
+      - name: Publish exact release result
+        shell: bash
+        run: |
+          set -euo pipefail
+          run="$RUNNER_TEMP/release-run.json"
+          run_id="$(jq -r '.id' "$run")"
+          run_number="$(jq -r '.run_number' "$run")"
+          head_sha="$(jq -r '.head_sha' "$run")"
+          url="$(jq -r '.html_url' "$run")"
+          apk_sha256="$(cut -d' ' -f1 "$RUNNER_TEMP/production-artifact/apk-sha256.txt")"
+          apk_size="$(stat -c '%s' "$RUNNER_TEMP/production-artifact/unpacked/app-release.apk")"
+
+          {
+            echo '## EZROME Production Release — VERIFIED'
+            echo
+            echo "- **Workflow:** $RELEASE_WORKFLOW"
+            echo "- **Run:** [$run_number / $run_id]($url)"
+            echo "- **Ref:** $RELEASE_REF"
+            echo "- **Commit:** \`$head_sha\`"
+            echo "- **APK:** \`app-release.apk\`"
+            echo "- **APK size:** $apk_size bytes"
+            echo "- **Final APK SHA-256:** \`$apk_sha256\`"
+            echo
+            echo 'The production workflow reported success, verified the s.mtyhali signer fingerprint, and verified the uploaded APK byte-for-byte before this dispatcher accepted the release.'
+          } >> "$GITHUB_STEP_SUMMARY"
