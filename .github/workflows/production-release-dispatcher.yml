@@ -68,7 +68,6 @@ jobs:
 
           while [ "$(date +%s)" -lt "$deadline" ]; do
             runs="$(gh api \
-              --paginate \
               -H 'Accept: application/vnd.github+json' \
               -H 'X-GitHub-Api-Version: 2022-11-28' \
               "/repos/$REPOSITORY/actions/workflows/$RELEASE_WORKFLOW/runs?event=workflow_dispatch&branch=$RELEASE_REF&per_page=20")"
