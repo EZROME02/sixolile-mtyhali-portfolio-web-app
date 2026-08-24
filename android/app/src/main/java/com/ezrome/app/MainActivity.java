@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 showContent();
+                injectProfessionalLinks();
             }
 
             @Override
@@ -84,6 +85,31 @@ public class MainActivity extends Activity {
             startActivity(intent);
         }
         return true;
+    }
+
+    /**
+     * Adds the requested recruiter/social contact routes to the existing app page
+     * without changing any of the portfolio or EZROME intelligence slides.
+     */
+    private void injectProfessionalLinks() {
+        final String script = "javascript:(function(){"
+                + "if(document.getElementById('ezrome-native-social-links'))return;"
+                + "var s=document.createElement('section');"
+                + "s.id='ezrome-native-social-links';"
+                + "s.style.cssText='margin:24px auto;padding:18px;max-width:720px;border:1px solid rgba(34,211,238,.35);border-radius:10px;background:rgba(7,26,51,.82);font-family:system-ui,sans-serif;box-sizing:border-box;';"
+                + "s.innerHTML='<div style=\"font-size:11px;letter-spacing:2px;color:#22d3ee;text-transform:uppercase;font-weight:700\">Professional contact</div>'"
+                + "+'<div style=\"margin-top:6px;font-size:14px;color:#e5e7eb\">Connect with Sixolile Ezrome Mtyhali</div>'"
+                + "+'<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:14px\">'"
+                + "+'<a href=\"https://www.linkedin.com/in/xillah-wethu-385aa63b4\" style=\"padding:10px;border:1px solid rgba(34,211,238,.4);border-radius:6px;color:#22d3ee;text-decoration:none;text-align:center;font-size:12px\">LinkedIn</a>'"
+                + "+'<a href=\"https://x.com/XillahW37827\" style=\"padding:10px;border:1px solid rgba(34,211,238,.4);border-radius:6px;color:#22d3ee;text-decoration:none;text-align:center;font-size:12px\">X / Twitter</a>'"
+                + "+'<a href=\"https://www.facebook.com/xillah.wethu.ii\" style=\"padding:10px;border:1px solid rgba(34,211,238,.4);border-radius:6px;color:#22d3ee;text-decoration:none;text-align:center;font-size:12px\">Facebook</a>'"
+                + "+'<a href=\"https://www.instagram.com/xillahwethuii\" style=\"padding:10px;border:1px solid rgba(34,211,238,.4);border-radius:6px;color:#22d3ee;text-decoration:none;text-align:center;font-size:12px\">Instagram</a>'"
+                + "+'<a href=\"https://wa.me/27691447275\" style=\"padding:10px;border:1px solid rgba(34,211,238,.4);border-radius:6px;color:#22d3ee;text-decoration:none;text-align:center;font-size:12px\">WhatsApp</a>'"
+                + "+'<a href=\"mailto:xillahwethu87@gmail.com\" style=\"padding:10px;border:1px solid rgba(34,211,238,.4);border-radius:6px;color:#22d3ee;text-decoration:none;text-align:center;font-size:12px\">Email</a>'"
+                + "+'</div>';"
+                + "document.body.appendChild(s);"
+                + "})()";
+        webView.evaluateJavascript(script, null);
     }
 
     private void loadStartPage() {
