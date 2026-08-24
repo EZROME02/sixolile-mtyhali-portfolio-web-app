@@ -2,6 +2,9 @@ name: EZROME Android Production Release
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -142,3 +145,23 @@ jobs:
           fi
 
           echo "Uploaded artifact matches the final production APK byte-for-byte."
+
+      - name: Publish verified production result
+        env:
+          APK_SHA256: ${{ steps.hash.outputs.apk_sha256 }}
+        run: |
+          set -euo pipefail
+          apk="app/build/outputs/apk/release/app-release.apk"
+          apk_size="$(stat -c '%s' "$apk")"
+          {
+            echo '## EZROME Production Release — VERIFIED'
+            echo
+            echo "- **Trigger:** ${{ github.event_name }}"
+            echo "- **Run:** #${{ github.run_number }}"
+            echo "- **Commit:** \`${{ github.sha }}\`"
+            echo "- **APK:** \`app-release.apk\`"
+            echo "- **APK size:** $apk_size bytes"
+            echo "- **Final APK SHA-256:** \`$APK_SHA256\`"
+            echo
+            echo 'The s.mtyhali signer identity and uploaded APK were verified by the production release gate.'
+          } >> "$GITHUB_STEP_SUMMARY"
