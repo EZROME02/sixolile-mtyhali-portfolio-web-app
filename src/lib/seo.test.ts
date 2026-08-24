@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import {
   SEO_PROJECTS,
   SEO_SITE_DESCRIPTION,
@@ -34,5 +35,14 @@ describe("EZROME SEO identity", () => {
     expect(types).toEqual(expect.arrayContaining(["Person", "Organization", "WebSite", "SoftwareApplication"]));
     expect(graph.find((node) => node["@type"] === "Person")?.name).toBe("Sixolile Ezrome Mtyhali");
     expect(graph.find((node) => node["@type"] === "Organization")?.name).toBe("EZROME");
+  });
+
+  test("publishes crawler discovery files for the canonical host", () => {
+    const robots = readFileSync("public/robots.txt", "utf8");
+    const sitemap = readFileSync("public/sitemap.xml", "utf8");
+    expect(robots).toContain("Sitemap: https://ezrome.co.za/sitemap.xml");
+    expect(sitemap).toContain("https://ezrome.co.za/");
+    expect(sitemap).toContain("https://ezrome.co.za/projects");
+    for (const project of SEO_PROJECTS) expect(sitemap).toContain(project.url);
   });
 });
