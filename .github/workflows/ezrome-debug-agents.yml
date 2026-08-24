@@ -1,10 +1,13 @@
 name: EZROME Debug Agents
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
   push:
-    branches: [feat/ezrome-ai-platform]
+    branches:
+      - feat/ezrome-ai-platform
+      - fix/android-build-agent-3de8c62
 
 permissions:
   contents: read
@@ -58,12 +61,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
       - name: Diagnose production build
         shell: bash
         run: |
@@ -90,3 +98,93 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
           exit $status
+
+      - name: Upload web build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ezrome-web-build-diagnostics-${{ github.sha }}
+          path: build.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+  android-build-repair-agent:
+    name: Android Build Repair Agent
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle 8.10.2
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Run Android diagnostic build
+        working-directory: android
+        shell: bash
+        run: |
+          set +e
+          gradle --no-daemon --stacktrace --warning-mode all assembleDebug 2>&1 | tee ../android-build.log
+          status=${PIPESTATUS[0]}
+          exit "$status"
+
+      - name: Diagnose Android failure
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOG="android-build.log"
+          {
+            echo "## Android Build Repair Agent"
+            echo
+            echo "### Root-cause classification"
+            if grep -Eq "Failed to find target with hash string|failed to find target with hash string|SDK location not found|failed to find Build Tools" "$LOG"; then
+              echo "ENVIRONMENT: Android SDK/platform/build-tools availability."
+              echo "The repair path is to provision the required Android 35 SDK and Build Tools 35.0.0 before Gradle."
+            elif grep -Eq "Minimum supported Gradle version|Gradle version.*is not supported|requires Gradle" "$LOG"; then
+              echo "GRADLE: Gradle/Android Gradle Plugin compatibility."
+              echo "The repair path is pinned here to Gradle 8.10.2 for AGP 8.7.3."
+            elif grep -Eq "Could not resolve com.android.tools.build:gradle|Plugin .*com.android.application.*was not found" "$LOG"; then
+              echo "PLUGIN: Android Gradle Plugin resolution/repository configuration."
+            elif grep -Eq "Android resource linking failed|AAPT2 error|error: resource .* not found" "$LOG"; then
+              echo "RESOURCE: Android resource compilation/linking failure."
+            elif grep -Eq "Compilation failed|error: .*java|error: .*\.java" "$LOG"; then
+              echo "SOURCE: Java/Android source compilation failure."
+            elif grep -Eq "Could not find method|Could not set unknown property|Could not get unknown property" "$LOG"; then
+              echo "SCRIPT: Gradle/Groovy build script configuration failure."
+            else
+              echo "UNKNOWN: no conservative signature matched; the full diagnostic log is preserved as an artifact."
+            fi
+            echo
+            echo "### Last 80 log lines"
+            echo '```text'
+            tail -n 80 "$LOG"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Android diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ezrome-android-build-diagnostics-${{ github.sha }}
+          path: android-build.log
+          if-no-files-found: ignore
+          retention-days: 14
