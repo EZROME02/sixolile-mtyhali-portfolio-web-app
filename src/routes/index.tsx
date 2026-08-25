@@ -5,17 +5,17 @@ import cvAsset from "@/assets/cv.pdf.asset.json";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Sixolile Ezrome Mtyhali — EZROME Technology Intelligence" },
+      { title: "Sixolile Ezrome Mtyhali — EZROME | Full-Stack AI Developer" },
       {
         name: "description",
         content:
-          "EZROME technology portfolio: operations, logistics, customer service, applied AI, workplace productivity and technology intelligence.",
+          "EZROME portfolio of Sixolile Ezrome Mtyhali: AI applications, web/PWA and Android development, GitHub engineering, and a 2026 Full-Stack AI Developer roadmap.",
       },
-      { property: "og:title", content: "Sixolile Ezrome Mtyhali — EZROME Technology Intelligence" },
+      { property: "og:title", content: "Sixolile Ezrome Mtyhali — EZROME" },
       {
         property: "og:description",
         content:
-          "A practical technology portfolio combining real-world professional experience with AI, digital innovation and a 2026 technology roadmap.",
+          "Emerging Full-Stack AI Developer building practical AI, web/PWA and Android projects under the EZROME brand.",
       },
       { property: "og:type", content: "profile" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -26,28 +26,21 @@ export const Route = createFileRoute("/")({
 
 const EMAIL = "xillahwethu87@gmail.com";
 const PHONE = "069 144 7275";
-const CV_REQUEST = `mailto:${EMAIL}?subject=${encodeURIComponent(
-  "CV Request — Sixolile Ezrome Mtyhali",
-)}&body=${encodeURIComponent(
-  "Hi Sixolile,\n\nI'd like to request a copy of your CV.\n\nCompany:\nRole:\nContact:\n\nThank you.",
-)}`;
+const CV_URL = cvAsset.url;
 const AI_PROJECT_URL = "https://sixolile-mtyhali-ai-assistant.lovable.app";
 const GITHUB_ACTIONS_URL = "https://github.com/EZROME02/sixolile-mtyhali-portfolio-web-app/actions";
 const GITHUB_URL = "https://github.com/EZROME02";
-// No exact LinkedIn profile URL is stored in this project yet — this resolves to a
-// name search so the CTA is functional without fabricating a profile link.
-const LINKEDIN_URL = "https://www.linkedin.com/search/results/all/?keywords=Sixolile%20Ezrome%20Mtyhali";
+const LINKEDIN_URL = "https://www.linkedin.com/in/xillah-wethu-385aa63b4";
 const WHATSAPP_URL = "https://wa.me/27691447275";
-const SIGNATURE = "S-M-T-Y-H-A-L-I";
+const SIGNATURE = "EZROME";
 
 const recruiterLinks = [
   { rank: "01", label: "Connect on LinkedIn", note: "Primary professional channel", href: LINKEDIN_URL, tone: "cyan" },
-  { rank: "02", label: "Request my CV", note: "Recruiter-facing CV, sent directly", href: CV_REQUEST, tone: "cyan" },
+  { rank: "02", label: "Download my CV", note: "Recruiter-facing CV", href: CV_URL, tone: "cyan" },
   { rank: "03", label: "GitHub — proof of work", note: "Source, builds and release tooling", href: GITHUB_URL, tone: "violet" },
   { rank: "04", label: "Professional email", note: EMAIL, href: `mailto:${EMAIL}`, tone: "violet" },
   { rank: "05", label: "WhatsApp — direct contact", note: PHONE, href: WHATSAPP_URL, tone: "signal" },
 ];
-
 
 const jobs = [
   {
@@ -83,24 +76,51 @@ const jobs = [
 ];
 
 const skills = [
-  { title: "Operations & Logistics", items: ["Order Picking", "Stock Tracking", "Checking & Packing", "Warehouse Operations", "Logistics Support"] },
-  { title: "Customer & Sales", items: ["Customer Service", "Sales Merchandising", "Retail Support", "Communication", "Team Collaboration"] },
-  { title: "Workplace Strengths", items: ["Reliability", "Time Management", "Adaptability", "Attention to Detail", "Working Under Pressure"] },
-  { title: "Digital & AI", items: ["AI Literacy", "Prompting", "Responsible AI", "AI Productivity Tools", "AI Project Development"] },
+  { title: "Built & Demonstrated", items: ["AI Applications", "JavaScript", "React", "Git & GitHub", "PWA / Web Development", "Android WebView"] },
+  { title: "AI Development", items: ["AI Productivity Workflows", "AI Chat", "Prompting", "AI API Integration", "Responsible AI", "AI Project Development"] },
+  { title: "Engineering Workflow", items: ["GitHub Actions", "Automated Testing", "CI/CD", "APK Build Verification", "SHA-256 Artifact Checks", "Release Gates"] },
+  { title: "Currently Developing", items: ["Python", "Next.js", "Tailwind CSS", "FastAPI", "Supabase", "AI Agents / RAG / Vector Databases"] },
 ];
 
 const roadmap = [
-  { period: "Q1 2026", title: "Data & Spreadsheet Fluency", detail: "Advanced spreadsheets, reporting and dashboarding for operations data." },
-  { period: "Q2 2026", title: "Web Fundamentals", detail: "HTML, CSS and JavaScript foundations to build and maintain practical tools." },
-  { period: "Q3 2026", title: "Applied AI Workflows", detail: "Automating repetitive workplace tasks with AI assistants and integrations." },
-  { period: "Q4 2026", title: "Supply Chain Tech", detail: "Warehouse systems, inventory software and digital logistics tooling." },
+  { period: "FOUNDATIONS", title: "Python + Web Fundamentals", detail: "Developing Python, HTML, CSS, JavaScript and stronger Git/GitHub foundations." },
+  { period: "FULL-STACK", title: "Modern Application Development", detail: "Developing React, Next.js, Tailwind CSS, FastAPI, Supabase and Vercel workflows." },
+  { period: "AI DEVELOPMENT", title: "AI APIs + RAG + Agents", detail: "Building capability with AI APIs, retrieval-augmented generation, embeddings, vector databases, agents and tools." },
+  { period: "GOAL", title: "Full-Stack AI Developer", detail: "Turn practical AI, web and Android project work into a stronger full-stack engineering capability." },
+];
+
+const projects = [
+  {
+    code: "AI-01",
+    title: "EZROME ASSIST BOT",
+    status: "Built & Demonstrated",
+    detail: "AI productivity-oriented assistant exploring practical workflows such as AI chat, email generation, notes summarization, task planning and research assistance.",
+    href: AI_PROJECT_URL,
+    label: "Open AI project ↗",
+  },
+  {
+    code: "AI-02",
+    title: "AI Productivity Assistant",
+    status: "Built & Demonstrated",
+    detail: "Practical AI application work focused on integrating AI into useful everyday workplace and productivity workflows.",
+    href: AI_PROJECT_URL,
+    label: "View project ↗",
+  },
+  {
+    code: "FT-03",
+    title: "Rated Opinionz Bot",
+    status: "Project / Intelligence Exploration",
+    detail: "Football intelligence project exploring AI-assisted football information, analysis and opinion without overstating its current capabilities.",
+    href: "#intelligence",
+    label: "View intelligence work →",
+  },
 ];
 
 const intelligence = [
-  { code: "AI-01", title: "AI Workflow Intelligence", detail: "Prompt-driven workplace automation, research, planning and communication workflows." },
-  { code: "FT-02", title: "Football Tactical Intelligence", detail: "A future-facing intelligence layer for structured match analysis, tactical patterns and decision support." },
-  { code: "HC-03", title: "Human Control", detail: "Technology assists decisions; people remain accountable for sensitive, high-impact actions." },
-  { code: "PO-04", title: "Practical Outcomes", detail: "Every workflow is connected to a real problem, measurable action and usable result." },
+  { code: "EZ-01", title: "Build, Don't Just Claim", detail: "EZROME presents technology through working projects, repository evidence, testing and development progress." },
+  { code: "EZ-02", title: "Practical AI", detail: "AI is approached as a tool for real workflows: communication, planning, research, summarization and productivity." },
+  { code: "EZ-03", title: "Human-Controlled Releases", detail: "Android release workflows use protected production signing gates; private signing credentials are never exposed in the portfolio." },
+  { code: "EZ-04", title: "Football Intelligence", detail: "Rated Opinionz Bot explores structured football information, analysis and opinion as an AI project direction." },
 ];
 
 function Index() {
@@ -111,8 +131,8 @@ function Index() {
           <a href="#top" className="flex items-center gap-3">
             <Portrait className="size-10 shrink-0 rounded-sm ring-1 ring-primary/60" priority />
             <span className="leading-tight">
-              <span className="block font-display text-sm font-bold tracking-[0.18em]">{SIGNATURE}</span>
-              <span className="block label-mono text-cyan">EZROME · Technology Intelligence</span>
+              <span className="block font-display text-sm font-bold tracking-[0.18em]">EZROME</span>
+              <span className="block label-mono text-cyan">Sixolile Ezrome Mtyhali · Full-Stack AI Developer</span>
             </span>
           </a>
 
@@ -121,8 +141,8 @@ function Index() {
               <a key={id} href={`#${id}`} className="text-muted-foreground transition hover:text-cyan">{id}</a>
             ))}
           </nav>
-          <a href={CV_REQUEST} className="rounded-sm border border-cyan/60 bg-cyan/10 px-4 py-2 font-mono text-[10px] tracking-widest text-cyan uppercase transition hover:bg-cyan/20">
-            Request my CV
+          <a href={CV_URL} target="_blank" rel="noreferrer" className="rounded-sm border border-cyan/60 bg-cyan/10 px-4 py-2 font-mono text-[10px] tracking-widest text-cyan uppercase transition hover:bg-cyan/20">
+            Download CV
           </a>
         </div>
       </header>
@@ -130,46 +150,44 @@ function Index() {
       <main className="mx-auto w-[92%] max-w-6xl pb-24">
         <section className="grid items-center gap-8 py-10 lg:grid-cols-[1fr_0.8fr]">
           <div>
-            <p className="font-display text-xs font-bold tracking-[0.42em] text-cyan sm:text-sm">{SIGNATURE}</p>
-            <p className="mt-2 label-mono text-muted-foreground">EZROME · Operations • Technology • Intelligence • AI</p>
+            <p className="font-display text-xs font-bold tracking-[0.42em] text-cyan sm:text-sm">EZROME</p>
+            <p className="mt-2 label-mono text-muted-foreground">AI APPLICATIONS · WEB/PWA · ANDROID · GITHUB · AUTOMATION</p>
             <h1 className="mt-4 font-display text-4xl leading-[0.98] font-bold sm:text-6xl lg:text-7xl">
               Sixolile Ezrome <span className="block text-cyan">Mtyhali</span>
             </h1>
             <div className="mt-5 h-px w-40 rule-line" />
-
             <p className="mt-5 font-mono text-xs tracking-widest text-violet uppercase">
-              Customer Service · Warehouse Operations · Sales Merchandising · Applied AI
+              Emerging Full-Stack AI Developer · AI Application Builder · Web & Android Developer
             </p>
             <p className="mt-6 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-              Hardworking and adaptable professional with hands-on experience across retail, warehousing,
-              manufacturing, sales and logistics — now building practical AI and digital technology solutions.
+              I build practical technology under the EZROME brand — combining AI applications, web/PWA experiences,
+              Android development and GitHub-based engineering while developing toward a Full-Stack AI Developer career.
             </p>
             <p className="mt-6 border-l-2 border-cyan/60 pl-4 font-display text-lg text-foreground/90">
-              “Build smarter. Work harder. Create impact.”
+              “I don't just want to learn technology. I want to build with it.”
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" className="w-full rounded-sm border border-cyan/60 bg-cyan/15 px-5 py-3 text-center font-mono text-[11px] tracking-widest text-cyan uppercase transition hover:bg-cyan/25 sm:w-auto">Connect on LinkedIn</a>
-              <a href={CV_REQUEST} className="w-full rounded-sm border border-cyan/60 bg-cyan/10 px-5 py-3 text-center font-mono text-[11px] tracking-widest text-cyan uppercase transition hover:bg-cyan/20 sm:w-auto">Request my CV</a>
-              <a href="#projects" className="rounded-sm border border-border px-5 py-3 font-mono text-[11px] tracking-widest uppercase transition hover:bg-primary/15">View AI project</a>
-              <a href="#intelligence" className="rounded-sm border border-violet/50 px-5 py-3 font-mono text-[11px] tracking-widest text-violet uppercase transition hover:bg-violet/10">EZROME Intelligence</a>
+              <a href={CV_URL} target="_blank" rel="noreferrer" className="w-full rounded-sm border border-cyan/60 bg-cyan/10 px-5 py-3 text-center font-mono text-[11px] tracking-widest text-cyan uppercase transition hover:bg-cyan/20 sm:w-auto">Download CV</a>
+              <a href="#projects" className="rounded-sm border border-border px-5 py-3 font-mono text-[11px] tracking-widest uppercase transition hover:bg-primary/15">View AI projects</a>
+              <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="rounded-sm border border-violet/50 px-5 py-3 font-mono text-[11px] tracking-widest text-violet uppercase transition hover:bg-violet/10">GitHub ↗</a>
             </div>
-
           </div>
 
           <figure className="glass-card overflow-hidden rounded-lg">
             <Portrait className="h-full min-h-[28rem] w-full" priority />
             <figcaption className="border-t border-border px-5 py-4">
-              <p className="label-mono text-cyan">Nova Technological</p>
-              <p className="mt-1 text-xs text-muted-foreground">AI · Cloud · Innovation · Technology</p>
+              <p className="label-mono text-cyan">EZROME</p>
+              <p className="mt-1 text-xs text-muted-foreground">AI · Web/PWA · Android · Automation</p>
             </figcaption>
           </figure>
         </section>
 
         <section className="grid gap-3 sm:grid-cols-3">
           {[
-            ["05", "Professional roles across retail, production & logistics"],
-            ["AI", "Google AI Essentials + applied AI project work"],
-            ["2026", "Technology learning and development roadmap"],
+            ["AI", "Practical AI application projects"],
+            ["WEB + ANDROID", "PWA and Android development work"],
+            ["2026", "Full-Stack AI Developer roadmap"],
           ].map(([value, label]) => (
             <div key={label} className="glass-card rounded-lg px-5 py-5">
               <p className="font-display text-3xl font-bold text-cyan">{value}</p>
@@ -178,18 +196,22 @@ function Index() {
           ))}
         </section>
 
-        <Section id="about" eyebrow="01 / Human context" title="About me">
+        <Section id="about" eyebrow="01 / Professional identity" title="About me">
           <div className="grid gap-4 md:grid-cols-3">
             <div className="glass-card p-5 md:col-span-2">
               <p className="text-sm leading-7 text-muted-foreground">
-                Motivated and reliable, with hands-on experience across retail, manufacturing, warehousing,
-                sales and logistics. I bring a practical mindset to technology: understand the real problem,
-                choose the right tool, keep the human in control, and measure the outcome.
+                I am Sixolile Ezrome Mtyhali, an emerging Full-Stack AI Developer building practical technology under EZROME.
+                My background includes retail, warehousing, manufacturing, sales and logistics, while my current direction is focused on
+                AI applications, web/PWA development, Android and software-development workflows.
+              </p>
+              <p className="mt-4 text-sm leading-7 text-muted-foreground">
+                I use real projects to turn learning into evidence: building, testing, debugging, working with GitHub and CI/CD,
+                and documenting what is still developing. My goal is to become a Full-Stack AI Developer by continuously building useful software.
               </p>
             </div>
             <div className="glass-card p-5">
-              <p className="label-mono text-violet">Operating principle</p>
-              <p className="mt-3 font-display text-lg">REAL PROBLEM → TECHNOLOGY → HUMAN CONTROL → PRACTICAL OUTCOME</p>
+              <p className="label-mono text-violet">Core message</p>
+              <p className="mt-3 font-display text-lg">BUILD → DEMONSTRATE → LEARN → IMPROVE → BUILD AGAIN</p>
             </div>
           </div>
         </Section>
@@ -208,9 +230,10 @@ function Index() {
               </article>
             ))}
           </div>
+          <p className="mt-5 text-xs leading-6 text-muted-foreground">These roles are presented as real operations, manufacturing, retail and logistics experience — not as software employment. The transferable strengths are process discipline, teamwork, accuracy, adaptability and problem solving.</p>
         </Section>
 
-        <Section id="skills" eyebrow="03 / Capability matrix" title="Skills">
+        <Section id="skills" eyebrow="03 / Capability matrix" title="Skills & development status">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {skills.map((group) => (
               <article key={group.title} className="glass-card p-5">
@@ -223,26 +246,38 @@ function Index() {
           </div>
         </Section>
 
-        <Section id="projects" eyebrow="04 / Built & live" title="AI Workplace Productivity Assistant" subtitle="Demonstrated work — a working project rather than a concept.">
-          <div className="glass-card overflow-hidden md:grid md:grid-cols-[0.38fr_0.62fr]">
+        <Section id="projects" eyebrow="04 / Project evidence" title="EZROME projects" subtitle="Built and demonstrated work is separated from technologies still being developed.">
+          <div className="grid gap-3 lg:grid-cols-3">
+            {projects.map((project) => (
+              <article key={project.code} className="glass-card relative overflow-hidden p-6">
+                <div className="absolute inset-x-0 top-0 h-px rule-line" />
+                <div className="flex items-center justify-between gap-3">
+                  <p className="label-mono text-cyan">{project.code}</p>
+                  <span className="text-[9px] font-mono tracking-widest text-signal uppercase">{project.status}</span>
+                </div>
+                <h3 className="mt-4 font-display text-xl font-bold">{project.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{project.detail}</p>
+                <a href={project.href} target={project.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="mt-5 inline-block rounded-sm border border-cyan/60 bg-cyan/10 px-4 py-2 font-mono text-[10px] tracking-widest text-cyan uppercase">{project.label}</a>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-4 glass-card overflow-hidden md:grid md:grid-cols-[0.38fr_0.62fr]">
             <div className="grid min-h-64 place-items-center border-b border-border bg-gradient-to-br from-primary/10 via-background to-violet/10 p-8 md:border-b-0 md:border-r">
               <div className="w-full max-w-xs space-y-3 font-mono text-[10px] uppercase tracking-widest">
-                <div className="border border-cyan/30 bg-cyan/5 p-4"><span className="text-cyan">INPUT</span><p className="mt-2 text-muted-foreground">workplace task / notes / research</p></div>
-                <div className="text-center text-cyan">↓ AI WORKFLOW ↓</div>
-                <div className="border border-violet/30 bg-violet/5 p-4"><span className="text-violet">OUTPUT</span><p className="mt-2 text-muted-foreground">draft · summary · plan · insight</p></div>
+                <div className="border border-cyan/30 bg-cyan/5 p-4"><span className="text-cyan">INPUT</span><p className="mt-2 text-muted-foreground">task / notes / research / communication</p></div>
+                <div className="text-center text-cyan">↓ EZROME AI WORKFLOW ↓</div>
+                <div className="border border-violet/30 bg-violet/5 p-4"><span className="text-violet">OUTPUT</span><p className="mt-2 text-muted-foreground">draft · summary · plan · research support</p></div>
               </div>
             </div>
             <div className="p-7">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-2 border border-signal/40 bg-signal/5 px-3 py-1 font-mono text-[10px] tracking-widest text-signal uppercase"><span className="size-1.5 rounded-full bg-signal" />Built & Live</span>
-                <span className="label-mono text-muted-foreground">Responsible AI</span>
+                <span className="inline-flex items-center gap-2 border border-signal/40 bg-signal/5 px-3 py-1 font-mono text-[10px] tracking-widest text-signal uppercase"><span className="size-1.5 rounded-full bg-signal" />Built & Demonstrated</span>
+                <span className="label-mono text-muted-foreground">EZROME ASSIST BOT</span>
               </div>
-              <h3 className="mt-4 font-display text-2xl font-bold">AI EZROME ARTIST BOT / Workplace Productivity Assistant</h3>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">A practical assistant for professional communication, meeting notes, task planning, research and interactive workplace support, with responsible-AI guardrails.</p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <a href={AI_PROJECT_URL} target="_blank" rel="noreferrer" className="rounded-sm border border-cyan/60 bg-cyan/10 px-4 py-2 font-mono text-[10px] tracking-widest text-cyan uppercase">Open live project ↗</a>
-                <a href="/ai" className="rounded-sm border border-border px-4 py-2 font-mono text-[10px] tracking-widest uppercase">Open AI workspace</a>
-              </div>
+              <h3 className="mt-4 font-display text-2xl font-bold">AI Productivity Assistant</h3>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">A practical AI application focused on useful productivity workflows such as communication support, summarization, task planning and research assistance.</p>
+              <a href={AI_PROJECT_URL} target="_blank" rel="noreferrer" className="mt-5 inline-block rounded-sm border border-cyan/60 bg-cyan/10 px-4 py-2 font-mono text-[10px] tracking-widest text-cyan uppercase">Open live project ↗</a>
             </div>
           </div>
         </Section>
@@ -260,7 +295,7 @@ function Index() {
           </div>
         </Section>
 
-        <Section id="roadmap" eyebrow="06 / Development trajectory" title="2026 technology roadmap">
+        <Section id="roadmap" eyebrow="06 / Development trajectory" title="2026 Full-Stack AI Developer roadmap">
           <div className="grid gap-3 md:grid-cols-4">
             {roadmap.map((item) => (
               <article key={item.period} className="glass-card p-5">
@@ -275,22 +310,19 @@ function Index() {
         <Section id="cv" eyebrow="07 / Recruiter access" title="CV & professional profile">
           <div className="glass-card flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Request the current recruiter-facing CV rather than downloading an uncontrolled copy.</p>
-              <p className="mt-2 label-mono text-cyan">Canonical portfolio profile → canonical CV asset</p>
+              <p className="text-sm text-muted-foreground">Recruiter-facing CV for Sixolile Ezrome Mtyhali, connected to the canonical EZROME portfolio.</p>
+              <p className="mt-2 label-mono text-cyan">Canonical portfolio → canonical CV asset</p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <a href={CV_REQUEST} className="rounded-sm border border-cyan/60 bg-cyan/10 px-5 py-3 font-mono text-[10px] tracking-widest text-cyan uppercase">Request my CV</a>
-              <a href={cvAsset.url} target="_blank" rel="noreferrer" className="rounded-sm border border-border px-5 py-3 font-mono text-[10px] tracking-widest uppercase">View CV asset</a>
-            </div>
+            <a href={CV_URL} target="_blank" rel="noreferrer" className="rounded-sm border border-cyan/60 bg-cyan/10 px-5 py-3 font-mono text-[10px] tracking-widest text-cyan uppercase">Download CV</a>
           </div>
         </Section>
 
-        <Section id="platform" eyebrow="08 / Platform engineering" title="Android, release & verification tooling">
+        <Section id="platform" eyebrow="08 / Platform engineering" title="Android, PWA & verification">
           <div className="grid gap-3 md:grid-cols-3">
             {[
-              ["APK DEBUG", "Debug APK build, diagnostics, verification and SHA-256 artifact hashing."],
-              ["RELEASE GATE", "Production signing remains behind the protected human approval environment."],
-              ["ARTIFACT VERIFY", "Release signer fingerprint and final APK integrity are independently checked before publishing."],
+              ["ANDROID", "EZROME Android application using application ID com.ezrome.app, Android SDK 35, Java 17 and a WebView-based architecture."],
+              ["PWA / WEB", "Responsive web/PWA experience with offline/error handling, Web Storage and mobile navigation work."],
+              ["CI / RELEASE", "GitHub Actions workflows support builds, automated verification, APK artifact checks, SHA-256 verification and protected production signing gates."],
             ].map(([title, detail]) => (
               <article key={title} className="glass-card p-5">
                 <p className="label-mono text-cyan">{title}</p>
@@ -298,7 +330,8 @@ function Index() {
               </article>
             ))}
           </div>
-          <a href={GITHUB_ACTIONS_URL} target="_blank" rel="noreferrer" className="mt-5 inline-block font-mono text-[10px] tracking-widest text-cyan uppercase hover:underline">Open release & build actions ↗</a>
+          <p className="mt-5 text-xs leading-6 text-muted-foreground">Production signing and Google Play publication are not claimed here unless independently verified. Private signing credentials remain protected and are never displayed in the portfolio.</p>
+          <a href={GITHUB_ACTIONS_URL} target="_blank" rel="noreferrer" className="mt-3 inline-block font-mono text-[10px] tracking-widest text-cyan uppercase hover:underline">Open GitHub Actions ↗</a>
         </Section>
 
         <Section id="contact" eyebrow="09 / Human connection" title="Professional identity & contact" subtitle="Recruiter funnel: LinkedIn → EZROME portfolio → projects & GitHub → CV → contact.">
@@ -307,17 +340,14 @@ function Index() {
               <div className="flex items-center gap-4">
                 <Portrait className="size-16 shrink-0 rounded-sm ring-1 ring-cyan/50" />
                 <div>
-                  <p className="font-display text-sm font-bold tracking-[0.28em] text-cyan">{SIGNATURE}</p>
+                  <p className="font-display text-sm font-bold tracking-[0.28em] text-cyan">EZROME</p>
                   <p className="mt-1 text-sm font-bold">Sixolile Ezrome Mtyhali</p>
-                  <p className="label-mono text-muted-foreground">EZROME · Operations • Technology • Intelligence • AI</p>
+                  <p className="label-mono text-muted-foreground">Emerging Full-Stack AI Developer</p>
                 </div>
               </div>
               <div className="h-px w-full rule-line" />
-              <p className="text-xs leading-6 text-muted-foreground">
-                {SIGNATURE} is the canonical professional signature identity used across this portfolio,
-                authorship markers and protected release status.
-              </p>
-              <p className="label-mono text-signal">Status · Open to opportunities</p>
+              <p className="text-xs leading-6 text-muted-foreground">AI applications · Web/PWA · Android · GitHub · Automation</p>
+              <p className="label-mono text-signal">Status · Building toward Full-Stack AI Development</p>
             </div>
 
             <ol className="grid gap-3">
@@ -347,24 +377,17 @@ function Index() {
               <span className="label-mono text-muted-foreground">LinkedIn Career Agent</span>
             </div>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              The career agent prepares profile copy, recruiter outreach drafts and content suggestions.
-              Nothing is published or sent to LinkedIn automatically — every item requires explicit human
-              approval before it leaves this portfolio.
+              The career agent can prepare profile copy, recruiter outreach drafts and content suggestions. Nothing is published or sent to LinkedIn automatically — every item requires explicit human approval before publication.
             </p>
           </div>
-
-          <p className="mt-4 text-[11px] text-muted-foreground">
-            Secondary channels: Facebook and X/Twitter. Primary professional routes above take priority.
-          </p>
         </Section>
 
         <footer className="border-t border-border py-10 text-center">
-          <p className="font-display text-xs font-bold tracking-[0.42em] text-cyan">{SIGNATURE}</p>
-          <p className="mt-2 label-mono text-muted-foreground">EZROME TECHNOLOGY INTELLIGENCE</p>
-          <p className="mt-3 text-xs text-muted-foreground">REAL PROBLEM → TECHNOLOGY → HUMAN CONTROL → PRACTICAL OUTCOME</p>
+          <p className="font-display text-xs font-bold tracking-[0.42em] text-cyan">EZROME</p>
+          <p className="mt-2 label-mono text-muted-foreground">SIXOLILE EZROME MTYHALI · FULL-STACK AI DEVELOPER</p>
+          <p className="mt-3 text-xs text-muted-foreground">I don't just want to learn technology. I want to build with it.</p>
           <p className="mt-2 text-[10px] text-muted-foreground">Built for a responsive desktop and mobile experience.</p>
         </footer>
-
       </main>
     </div>
   );
