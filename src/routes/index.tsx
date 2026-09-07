@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Copy, Github, Linkedin, Mail, MessageCircle, Share2 } from "lucide-react";
 import { Portrait } from "@/components/Portrait";
 import cvAsset from "@/assets/cv.pdf.asset.json";
 
@@ -33,13 +35,13 @@ const GITHUB_URL = "https://github.com/EZROME02";
 const LINKEDIN_URL = "https://www.linkedin.com/in/xillah-wethu-385aa63b4";
 const WHATSAPP_URL = "https://wa.me/27691447275";
 const SIGNATURE = "EZROME";
-
+const SOCIAL_ICON_CLASS = "size-5";
 const recruiterLinks = [
-  { rank: "01", label: "Connect on LinkedIn", note: "Primary professional channel", href: LINKEDIN_URL, tone: "cyan" },
-  { rank: "02", label: "Download my CV", note: "Recruiter-facing CV", href: CV_URL, tone: "cyan" },
-  { rank: "03", label: "GitHub — proof of work", note: "Source, builds and release tooling", href: GITHUB_URL, tone: "violet" },
-  { rank: "04", label: "Professional email", note: EMAIL, href: `mailto:${EMAIL}`, tone: "violet" },
-  { rank: "05", label: "WhatsApp — direct contact", note: PHONE, href: WHATSAPP_URL, tone: "signal" },
+  { rank: "01", label: "Connect on LinkedIn", note: "Primary professional channel", href: LINKEDIN_URL, tone: "cyan", icon: Linkedin },
+  { rank: "02", label: "Download my CV", note: "Recruiter-facing CV", href: CV_URL, tone: "cyan", icon: Copy },
+  { rank: "03", label: "GitHub — proof of work", note: "Source, builds and release tooling", href: GITHUB_URL, tone: "violet", icon: Github },
+  { rank: "04", label: "Professional email", note: EMAIL, href: `mailto:${EMAIL}`, tone: "violet", icon: Mail },
+  { rank: "05", label: "WhatsApp — direct contact", note: PHONE, href: WHATSAPP_URL, tone: "signal", icon: MessageCircle },
 ];
 
 const jobs = [
@@ -124,6 +126,24 @@ const intelligence = [
 ];
 
 function Index() {
+  const [shareStatus, setShareStatus] = useState("");
+
+  async function sharePortfolio() {
+    const shareData = { title: "EZROME — Sixolile Ezrome Mtyhali", text: "Explore my AI, web and Android development portfolio.", url: window.location.href };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareStatus("Shared");
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        setShareStatus("Link copied");
+      }
+    } catch {
+      setShareStatus("");
+    }
+    window.setTimeout(() => setShareStatus(""), 2400);
+  }
+
   return (
     <div id="top" className="min-h-screen grid-field">
       <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
@@ -171,6 +191,9 @@ function Index() {
               <a href={CV_URL} target="_blank" rel="noreferrer" className="w-full rounded-sm border border-cyan/60 bg-cyan/10 px-5 py-3 text-center font-mono text-[11px] tracking-widest text-cyan uppercase transition hover:bg-cyan/20 sm:w-auto">Download CV</a>
               <a href="#projects" className="rounded-sm border border-border px-5 py-3 font-mono text-[11px] tracking-widest uppercase transition hover:bg-primary/15">View AI projects</a>
               <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="rounded-sm border border-violet/50 px-5 py-3 font-mono text-[11px] tracking-widest text-violet uppercase transition hover:bg-violet/10">GitHub ↗</a>
+              <button type="button" onClick={sharePortfolio} className="inline-flex items-center justify-center gap-2 rounded-sm border border-signal/60 px-5 py-3 font-mono text-[11px] tracking-widest text-signal uppercase transition hover:bg-signal/10" aria-label="Share this portfolio">
+                <Share2 className="size-4" /> {shareStatus || "Share portfolio"}
+              </button>
             </div>
           </div>
 
@@ -359,6 +382,7 @@ function Index() {
                     rel="noreferrer"
                     className="glass-card flex min-h-14 items-center gap-4 px-5 py-4 transition hover:bg-primary/10"
                   >
+                    <link.icon className="size-5 shrink-0 text-cyan" aria-hidden="true" />
                     <span className={`font-mono text-[10px] tracking-widest text-${link.tone}`}>{link.rank}</span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-bold">{link.label}</span>
