@@ -1,0 +1,39 @@
+name: Deploy EZROME portfolio to Cloudflare Worker
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ezrome-public-site-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and deploy ezrome-public-site
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Cloudflare Worker
+        run: npm run build
+
+      - name: Deploy portfolio Worker and static assets
+        run: npx wrangler deploy --config .output/server/wrangler.json --cwd .output/server --name ezrome-public-site
