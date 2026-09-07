@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Copy, Github, Linkedin, Mail, MessageCircle, Share2 } from "lucide-react";
+import { AtSign, Copy, Github, Linkedin, Mail, MessageCircle, Share2 } from "lucide-react";
 import { Portrait } from "@/components/Portrait";
 import cvAsset from "@/assets/cv.pdf.asset.json";
 
@@ -33,6 +33,7 @@ const AI_PROJECT_URL = "https://sixolile-mtyhali-ai-assistant.lovable.app";
 const GITHUB_ACTIONS_URL = "https://github.com/EZROME02/sixolile-mtyhali-portfolio-web-app/actions";
 const GITHUB_URL = "https://github.com/EZROME02";
 const LINKEDIN_URL = "https://www.linkedin.com/in/xillah-wethu-385aa63b4";
+const X_URL = "https://x.com/XillahW37827";
 const WHATSAPP_URL = "https://wa.me/27691447275";
 const SIGNATURE = "EZROME";
 const SOCIAL_ICON_CLASS = "size-5";
@@ -40,8 +41,9 @@ const recruiterLinks = [
   { rank: "01", label: "Connect on LinkedIn", note: "Primary professional channel", href: LINKEDIN_URL, tone: "cyan", icon: Linkedin },
   { rank: "02", label: "Download my CV", note: "Recruiter-facing CV", href: CV_URL, tone: "cyan", icon: Copy },
   { rank: "03", label: "GitHub — proof of work", note: "Source, builds and release tooling", href: GITHUB_URL, tone: "violet", icon: Github },
-  { rank: "04", label: "Professional email", note: EMAIL, href: `mailto:${EMAIL}`, tone: "violet", icon: Mail },
-  { rank: "05", label: "WhatsApp — direct contact", note: PHONE, href: WHATSAPP_URL, tone: "signal", icon: MessageCircle },
+  { rank: "04", label: "Follow on X", note: "Public updates and build progress", href: X_URL, tone: "violet", icon: AtSign },
+  { rank: "05", label: "Professional email", note: EMAIL, href: `mailto:${EMAIL}`, tone: "violet", icon: Mail },
+  { rank: "06", label: "WhatsApp — direct contact", note: PHONE, href: WHATSAPP_URL, tone: "signal", icon: MessageCircle },
 ];
 
 const jobs = [
