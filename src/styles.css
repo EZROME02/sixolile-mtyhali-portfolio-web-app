@@ -81,10 +81,26 @@
   --violet: oklch(0.66 0.22 300);
   --signal: oklch(0.82 0.2 150);
 
-  --gradient-hero: radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--primary) 28%, transparent), transparent 55%),
-    radial-gradient(circle at 80% 70%, color-mix(in oklab, var(--violet) 24%, transparent), transparent 55%);
-  --gradient-line: linear-gradient(90deg, var(--primary), var(--cyan), var(--violet), var(--signal));
-  --shadow-glow-value: 0 0 0 1px color-mix(in oklab, var(--primary) 30%, transparent),
+  --gradient-hero:
+    radial-gradient(
+      circle at 20% 20%,
+      color-mix(in oklab, var(--primary) 28%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      color-mix(in oklab, var(--violet) 24%, transparent),
+      transparent 55%
+    );
+  --gradient-line: linear-gradient(
+    90deg,
+    var(--primary),
+    var(--cyan),
+    var(--violet),
+    var(--signal)
+  );
+  --shadow-glow-value:
+    0 0 0 1px color-mix(in oklab, var(--primary) 30%, transparent),
     0 24px 60px -24px color-mix(in oklab, var(--cyan) 45%, transparent);
   --shadow-panel-value: 0 30px 90px -30px color-mix(in oklab, var(--background) 85%, black);
   --grid-line: color-mix(in oklab, var(--primary) 14%, transparent);
@@ -128,7 +144,8 @@
 }
 
 @utility grid-field {
-  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 56px 56px;
   animation: grid-drift 24s linear infinite;
@@ -136,7 +153,8 @@
 
 /* Compatibility alias for the existing portfolio pages. */
 @utility grid-lines {
-  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 56px 56px;
   animation: grid-drift 24s linear infinite;
@@ -178,31 +196,389 @@
 }
 
 @keyframes grid-drift {
-  from { background-position: 0 0; }
-  to { background-position: 56px 56px; }
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 56px 56px;
+  }
 }
 
 @keyframes scan {
-  0% { transform: translateY(-100%); opacity: 0; }
-  40% { opacity: 0.7; }
-  100% { transform: translateY(2000%); opacity: 0; }
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(2000%);
+    opacity: 0;
+  }
 }
 
 @keyframes slide-enter {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @keyframes pulse-node {
-  0%, 100% { opacity: 0.35; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.15); }
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Edge Ops integration */
+.edge-ops-shell {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--navy-deep) 94%, var(--cyan)),
+    var(--background)
+  );
+  box-shadow: var(--shadow-panel-value);
+}
+.edge-ops-hero {
+  display: grid;
+  grid-template-columns: 1fr 0.9fr;
+  gap: 30px;
+  align-items: center;
+  padding: clamp(30px, 6vw, 72px);
+}
+.edge-architecture {
+  position: relative;
+  height: 310px;
+  display: grid;
+  place-items: center;
+}
+.edge-orbit {
+  position: absolute;
+  border: 1px solid color-mix(in oklab, var(--cyan) 20%, transparent);
+  border-radius: 50%;
+  transform: rotate(-24deg);
+}
+.edge-orbit-one {
+  width: 400px;
+  height: 160px;
+}
+.edge-orbit-two {
+  width: 300px;
+  height: 220px;
+  transform: rotate(42deg);
+  border-color: color-mix(in oklab, var(--violet) 20%, transparent);
+}
+.edge-node {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in oklab, var(--cyan) 25%, transparent);
+  border-radius: 7px;
+  background: color-mix(in oklab, var(--surface) 85%, transparent);
+  box-shadow: 0 18px 45px -20px #000;
+  font-size: 11px;
+  transition:
+    transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+.edge-node:hover {
+  z-index: 5;
+  transform: translateY(-7px) scale(1.05);
+  border-color: var(--cyan);
+  box-shadow: 0 20px 55px -20px color-mix(in oklab, var(--cyan) 55%, transparent);
+}
+.edge-node b {
+  font: 500 8px var(--font-mono);
+  letter-spacing: 0.1em;
+  color: var(--cyan);
+}
+.edge-node i {
+  position: absolute;
+  left: 50%;
+  bottom: -25px;
+  width: max-content;
+  opacity: 0;
+  transform: translate(-50%, 5px);
+  color: var(--muted-foreground);
+  font: 9px var(--font-mono);
+  font-style: normal;
+  transition: all 0.2s;
+}
+.edge-node:hover i {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.edge-node-cloud {
+  align-items: center;
+  color: var(--cyan);
+  text-align: center;
+  border-color: color-mix(in oklab, var(--cyan) 65%, transparent);
+}
+.edge-node-cloud span {
+  color: var(--foreground);
+}
+.edge-node-portfolio {
+  left: 3%;
+  top: 15%;
+}
+.edge-node-portfolio > span,
+.edge-node-ai > span {
+  color: var(--muted-foreground);
+  font: 9px var(--font-mono);
+}
+.edge-node-ai {
+  right: 3%;
+  bottom: 12%;
+  border-color: color-mix(in oklab, var(--violet) 35%, transparent);
+}
+.edge-node-ai b {
+  color: var(--violet);
+}
+.edge-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  border-block: 1px solid var(--border);
+  padding: 18px clamp(30px, 6vw, 72px);
+}
+.edge-summary-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.edge-summary-grid span {
+  color: var(--muted-foreground);
+  font: 9px var(--font-mono);
+  letter-spacing: 0.12em;
+}
+.edge-summary-grid strong {
+  font: 500 10px var(--font-mono);
+  color: var(--foreground);
+}
+.edge-block {
+  padding: clamp(30px, 5vw, 62px);
+  border-top: 1px solid var(--border);
+}
+.edge-dns,
+.edge-dns-guide {
+  background: color-mix(in oklab, var(--navy-deep) 75%, transparent);
+}
+.edge-heading {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 40px;
+  align-items: end;
+  margin-bottom: 28px;
+}
+.edge-heading h3 {
+  margin-top: 10px;
+  font-size: clamp(25px, 4vw, 43px);
+  line-height: 1;
+}
+.edge-heading p {
+  max-width: 330px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.edge-app-card {
+  min-height: 165px;
+  padding: 20px;
+  border: 1px solid color-mix(in oklab, var(--cyan) 22%, transparent);
+  border-radius: 7px;
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+  transition:
+    transform 0.25s,
+    border-color 0.25s;
+}
+.edge-app-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in oklab, var(--cyan) 65%, transparent);
+}
+.edge-app-card.edge-violet {
+  border-color: color-mix(in oklab, var(--violet) 22%, transparent);
+}
+.edge-app-card h4 {
+  margin-top: 32px;
+  font-size: 18px;
+}
+.edge-ready {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--cyan);
+  font: 9px var(--font-mono);
+}
+.edge-ready span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+}
+.edge-dns {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 45px;
+  align-items: center;
+}
+.edge-dns .edge-heading {
+  display: block;
+}
+.edge-dns .edge-heading p {
+  margin-top: 20px;
+}
+.edge-dns-panel,
+.edge-history,
+.edge-guide-card {
+  border: 1px solid color-mix(in oklab, var(--cyan) 25%, transparent);
+  border-radius: 7px;
+  background: color-mix(in oklab, var(--background) 86%, transparent);
+  padding: 20px;
+}
+.edge-trace-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+  font: 9px var(--font-mono);
+}
+.edge-trace-row span {
+  color: var(--muted-foreground);
+}
+.edge-trace-row strong {
+  color: var(--foreground);
+  font-weight: 500;
+}
+.edge-trace-row b {
+  color: var(--signal);
+  font-size: 8px;
+}
+.edge-copy-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding: 9px 0;
+  color: var(--cyan);
+  font: 10px var(--font-mono);
+  text-align: left;
+}
+.edge-copy-row:last-child {
+  border-bottom: 0;
+}
+.edge-history {
+  padding: 0;
+  overflow: hidden;
+}
+.edge-run-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.edge-run-row:last-child {
+  border-bottom: 0;
+}
+.edge-run-row:hover {
+  background: color-mix(in oklab, var(--cyan) 5%, transparent);
+}
+.edge-run-row strong {
+  font-size: 11px;
+}
+.edge-run-row p {
+  margin-top: 4px;
+  color: var(--muted-foreground);
+  font: 9px var(--font-mono);
+}
+.edge-run-row code {
+  color: var(--cyan);
+}
+.edge-run-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+.edge-run-ok {
+  color: var(--cyan);
+  background: color-mix(in oklab, var(--cyan) 12%, transparent);
+}
+.edge-run-fail {
+  color: var(--signal);
+  background: color-mix(in oklab, var(--signal) 12%, transparent);
+}
+.edge-guide-card {
+  padding: 20px;
+}
+.edge-guide-card li:last-child {
+  border-bottom: 0;
+}
+.edge-guide-card h4 {
+  font-size: 20px;
+}
+@media (max-width: 800px) {
+  .edge-ops-hero,
+  .edge-dns {
+    grid-template-columns: 1fr;
+  }
+  .edge-architecture {
+    transform: scale(0.82);
+    margin-inline: -35px;
+  }
+  .edge-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .edge-heading {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .edge-run-row {
+    grid-template-columns: 28px 1fr auto;
+  }
+  .edge-run-row p {
+    line-height: 1.5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .edge-node,
+  .edge-app-card,
+  .edge-run-row {
+    transition: none;
   }
 }

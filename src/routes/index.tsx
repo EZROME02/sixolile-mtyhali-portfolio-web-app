@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { AtSign, Copy, Github, Linkedin, Mail, MessageCircle, Share2 } from "lucide-react";
+import { AtSign, Check, CircleAlert, Cloud, Copy, Github, Globe2, Linkedin, LockKeyhole, Mail, MessageCircle, Radio, Server, Share2, Workflow } from "lucide-react";
 import { Portrait } from "@/components/Portrait";
 import cvAsset from "@/assets/cv.pdf.asset.json";
 
@@ -45,6 +45,24 @@ const recruiterLinks = [
   { rank: "05", label: "Professional email", note: EMAIL, href: `mailto:${EMAIL}`, tone: "violet", icon: Mail },
   { rank: "06", label: "WhatsApp — direct contact", note: PHONE, href: WHATSAPP_URL, tone: "signal", icon: MessageCircle },
 ];
+
+const edgeApps = [
+  { name: "EZROME public site", repo: "sixolile-mtyhali-portfolio-web-app", worker: "ezrome-public-site", state: "BUILD VERIFIED", tone: "cyan" },
+  { name: "AI Productivity Assistant", repo: "AI-Productivity-Assistant", worker: "ezrome-ai-productivity-assistant", state: "BUILD VERIFIED", tone: "violet" },
+];
+
+const edgeRuns = [
+  { label: "Portfolio Worker", commit: "27d67a6", detail: "Build verified · deploy credentials pending", state: "READY" },
+  { label: "AI Assistant Worker", commit: "92ee91d", detail: "Build verified · deploy credentials pending", state: "READY" },
+  { label: "Cloudflare deploy", commit: "6015311", detail: "Dependency cache expected package-lock.json", state: "FAILED" },
+];
+
+const registrarGuides = {
+  "Hostinger / Afrihost": ["Log in and open Domains.", "Select ezrome.co.za → Nameservers.", "Choose custom nameservers.", "Replace both entries with the Cloudflare pair below and save."],
+  GoDaddy: ["Open Domain Portfolio.", "Select ezrome.co.za → Nameservers.", "Choose your own nameservers.", "Paste the Cloudflare pair below and confirm."],
+  Namecheap: ["Open Domain List → Manage.", "Choose CustomDNS.", "Enter the Cloudflare pair below.", "Save and allow propagation."],
+  "Other registrar": ["Open your domain management area.", "Find Nameservers or DNS delegation.", "Choose custom / external nameservers.", "Enter the Cloudflare pair below and save."],
+};
 
 const jobs = [
   {
@@ -129,6 +147,7 @@ const intelligence = [
 
 function Index() {
   const [shareStatus, setShareStatus] = useState("");
+  const [registrar, setRegistrar] = useState<keyof typeof registrarGuides>("Hostinger / Afrihost");
 
   async function sharePortfolio() {
     const shareData = { title: "EZROME — Sixolile Ezrome Mtyhali", text: "Explore my AI, web and Android development portfolio.", url: window.location.href };
@@ -219,6 +238,32 @@ function Index() {
               <p className="mt-2 text-sm text-muted-foreground">{label}</p>
             </div>
           ))}
+        </section>
+
+        <section id="edge-ops" className="edge-ops-shell mt-16 overflow-hidden rounded-xl border border-cyan/20">
+          <div className="edge-ops-hero">
+            <div>
+              <p className="label-mono text-cyan">EZROME / EDGE OPS · 07 SEP 2026</p>
+              <h2 className="mt-4 max-w-2xl font-display text-4xl font-bold leading-none sm:text-6xl">Ship the work.<br /><span className="text-cyan">Own the edge.</span></h2>
+              <p className="mt-5 max-w-xl text-sm leading-7 text-muted-foreground">A deployment companion for the portfolio and AI Productivity Assistant—moving from verified code to a resolvable domain without guesswork.</p>
+              <div className="mt-6 flex flex-wrap gap-3"><a href="#edge-deploy" className="rounded-sm bg-cyan px-4 py-3 font-mono text-[10px] font-bold tracking-widest text-navy uppercase transition hover:translate-y-[-2px]">See the path →</a><a href="#edge-dns" className="rounded-sm border border-cyan/40 px-4 py-3 font-mono text-[10px] tracking-widest text-cyan uppercase transition hover:bg-cyan/10">Inspect DNS</a></div>
+            </div>
+            <div className="edge-architecture" aria-label="Interactive EZROME Cloudflare architecture visualization">
+              <div className="edge-orbit edge-orbit-one" /><div className="edge-orbit edge-orbit-two" />
+              <div className="edge-node edge-node-cloud"><Cloud className="size-5" /><span>Cloudflare edge</span><b>CONNECTED</b><i>Traffic terminates here</i></div>
+              <div className="edge-node edge-node-portfolio"><span>01</span><strong>Portfolio</strong><b>BUILD READY</b><i>SSR + static assets</i></div>
+              <div className="edge-node edge-node-ai"><span>02</span><strong>AI Assistant</strong><b>BUILD READY</b><i>Independent rollback</i></div>
+            </div>
+          </div>
+          <div className="edge-summary-grid"><div><span>ACCOUNT</span><strong>Xillahwethu87&apos;s Account</strong></div><div><span>ZONE</span><strong>ezrome.co.za</strong></div><div><span>WORKERS</span><strong>2 planned targets</strong></div><div><span>NEXT BLOCKER</span><strong className="text-signal">Registrar delegation</strong></div></div>
+
+          <div id="edge-apps" className="edge-block"><div className="edge-heading"><div><span className="label-mono text-cyan">01 / APPLICATIONS</span><h3>Two apps. One deployment language.</h3></div><p>Each repository owns its own Worker, build pipeline, and rollback surface.</p></div><div className="grid gap-3 md:grid-cols-2">{edgeApps.map((app) => <article key={app.worker} className={`edge-app-card edge-${app.tone}`}><div className="flex items-center justify-between"><span className="label-mono">{app.tone === "cyan" ? "PORTFOLIO" : "PRODUCTIVITY"}</span><span className="edge-ready"><span />{app.state}</span></div><h4>{app.name}</h4><p className="mt-2 text-xs text-muted-foreground">{app.repo}</p><div className="mt-3 flex items-center gap-2 font-mono text-[10px] text-muted-foreground"><Server className="size-3 text-cyan" />{app.worker}</div></article>)}</div></div>
+
+          <div id="edge-dns" className="edge-block edge-dns"><div className="edge-heading"><div><span className="label-mono text-cyan">02 / DOMAIN HEALTH</span><h3>The edge is ready.<br /><span className="text-cyan">The address is not.</span></h3></div><p>Cloudflare has the zone, but public DNS still returns NXDOMAIN. This is a registrar-side delegation step.</p></div><div className="edge-dns-panel"><div className="flex items-center justify-between border-b border-border pb-4 font-mono text-[10px] tracking-widest"><span className="flex items-center gap-2"><Radio className="size-3" /> RESOLUTION TRACE</span><span className="text-signal">ACTION REQUIRED</span></div>{[["DOMAIN","ezrome.co.za","NXDOMAIN"],["CLOUDFLARE ZONE","Pending","UNRESOLVABLE"],["DNS RECORDS","0 records","EMPTY"]].map(([label,value,state]) => <div key={label} className="edge-trace-row"><span>{label}</span><strong>{value}</strong><b>{state}</b></div>)}<div className="mt-4 rounded-sm bg-navy-deep p-3"><span className="label-mono">ASSIGNED NAMESERVERS</span><button className="edge-copy-row" onClick={() => navigator.clipboard?.writeText("kristina.ns.cloudflare.com")}>kristina.ns.cloudflare.com <Copy className="size-3" /></button><button className="edge-copy-row" onClick={() => navigator.clipboard?.writeText("troy.ns.cloudflare.com")}>troy.ns.cloudflare.com <Copy className="size-3" /></button></div><p className="mt-4 flex gap-2 text-xs leading-5 text-signal"><CircleAlert className="mt-0.5 size-3 shrink-0" />Update these nameservers wherever the domain was purchased. Cloudflare cannot publish delegation at the .co.za registry.</p></div></div>
+
+          <div id="edge-deploy" className="edge-block"><div className="edge-heading"><div><span className="label-mono text-cyan">03 / DEPLOYMENT HISTORY</span><h3>Every release leaves a trail.</h3></div><p>A visual snapshot of recent GitHub Actions workflows. Live polling can be connected once secrets are available.</p></div><div className="edge-history"><div className="flex items-center justify-between border-b border-border px-4 py-3 font-mono text-[10px] tracking-widest"><span className="flex items-center gap-2"><Workflow className="size-3" /> RECENT RUNS</span><span className="text-cyan">● SNAPSHOT</span></div>{edgeRuns.map((run) => <div key={run.commit} className="edge-run-row"><span className={`edge-run-icon ${run.state === "FAILED" ? "edge-run-fail" : "edge-run-ok"}`}>{run.state === "FAILED" ? <CircleAlert className="size-3" /> : <Check className="size-3" />}</span><div><strong>{run.label}</strong><p>{run.detail} · <code>{run.commit}</code></p></div><b className={run.state === "FAILED" ? "text-signal" : "text-cyan"}>{run.state}</b></div>)}</div></div>
+
+          <div id="edge-dns-guide" className="edge-block edge-dns-guide"><div className="edge-heading"><div><span className="label-mono text-cyan">04 / REGISTRAR PLAYBOOK</span><h3>Tell the registrar<br /><span className="text-cyan">where to point.</span></h3></div><p>Choose where your domain is registered for a short, targeted nameserver checklist.</p></div><div className="grid gap-5 lg:grid-cols-[.8fr_1.2fr]"><div className="flex flex-wrap content-start gap-2">{Object.keys(registrarGuides).map((name) => <button key={name} onClick={() => setRegistrar(name as keyof typeof registrarGuides)} className={`rounded-sm border px-3 py-2 font-mono text-[10px] transition ${registrar === name ? "border-cyan bg-cyan text-navy" : "border-border text-muted-foreground hover:border-cyan/50"}`}>{name}</button>)}</div><div className="edge-guide-card"><div className="flex items-start justify-between"><div><span className="label-mono text-cyan">SELECTED GUIDE</span><h4 className="mt-2 text-xl">{registrar}</h4></div><Globe2 className="size-5 text-cyan" /></div><ol className="mt-4 space-y-2">{registrarGuides[registrar].map((step, index) => <li key={step} className="flex gap-3 border-b border-border py-2 text-xs"><span className="font-mono text-cyan">{String(index + 1).padStart(2, "0")}</span>{step}</li>)}</ol><div className="mt-4 rounded-sm bg-navy-deep px-3 py-2 font-mono text-[11px] text-cyan">kristina.ns.cloudflare.com<br />troy.ns.cloudflare.com</div></div></div></div>
         </section>
 
         <Section id="about" eyebrow="01 / Professional identity" title="About me">
